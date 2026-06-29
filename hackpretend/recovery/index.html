@@ -132,6 +132,25 @@
         line-height: 1.5;
         color: #c8f3dc;
       }
+
+      .success-screen .actions {
+        margin-top: 20px;
+      }
+
+      .success-screen button {
+        padding: 12px 16px;
+        border: 1px solid #9cf7b8;
+        border-radius: 8px;
+        background: linear-gradient(180deg, #1f5135, #153726);
+        color: #e7fff2;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      .success-screen button:hover {
+        filter: brightness(1.08);
+      }
     </style>
   </head>
   <body>
@@ -169,12 +188,19 @@
           return;
         }
 
-        localStorage.clear();
-        sessionStorage.clear();
+        // Reset only HackPretend runtime flags; keep puzzle completion records intact.
+        localStorage.removeItem("hackulean_server_unavailable");
+        localStorage.removeItem("hackpretend_logged_out");
+        localStorage.removeItem("hackpretend_elevated");
 
         document.body.className = "success-screen";
         document.body.innerHTML =
-          "<div><h1>Congratulations on solving the puzzle</h1><p>You solved various ciphers, crashed the server to stop a hacker from getting in, and then restored it to keep it running!</p></div>";
+          "<div><h1>Puzzle Completed</h1><p>You solved various ciphers, crashed the server to stop a hacker from getting in, and then restored it to keep it running!</p><div class=\"actions\"><button id=\"back-root-btn\" type=\"button\">Back to Puzzle Root</button></div></div>";
+
+        const backRootBtn = document.getElementById("back-root-btn");
+        backRootBtn.addEventListener("click", () => {
+          window.location.href = "/?signal=puzzle_completed&puzzle=01-hackpretend";
+        });
       });
     </script>
   </body>
