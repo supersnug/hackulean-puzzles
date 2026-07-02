@@ -346,9 +346,17 @@ function renderDatabaseList() {
     return;
   }
 
-  Array.from(sqlDatabaseList.querySelectorAll("li")).forEach((item) => {
-    const dbName = (item.getAttribute("data-db") || "").toLowerCase();
-    item.classList.toggle("dropped", !remainingDatabases.has(dbName));
+  sqlDatabaseList.replaceChildren();
+
+  TARGET_DATABASES.forEach((dbName) => {
+    if (!remainingDatabases.has(dbName.toLowerCase())) {
+      return;
+    }
+
+    const item = document.createElement("li");
+    item.setAttribute("data-db", dbName);
+    item.textContent = dbName;
+    sqlDatabaseList.appendChild(item);
   });
 }
 
