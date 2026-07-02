@@ -168,3 +168,11 @@ button {
   color: var(--muted);
   font-size: 0.86rem;
 }
+
+.account-state-error {
+  text-align: center;
+}
+
+.account-state-error h1 {
+  color: var(--bad);
+}

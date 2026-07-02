@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="shell">
+    <main id="terminal-shell" class="shell">
       <div class="head">
         <span>secure relay:: /terminal</span>
         <span>status: gated</span>
@@ -33,6 +33,17 @@
         </section>
 
         <p class="hint">Commands: help, ls, cat, whoami, pwd, uname, date, echo, send_data, clear, exit</p>
+      </div>
+    </main>
+
+    <main id="account-state-error" class="shell hidden" role="alert">
+      <div class="head">
+        <span>secure relay:: /terminal</span>
+        <span>status: denied</span>
+      </div>
+      <div class="body account-state-error">
+        <h1>ACCESS DENIED</h1>
+        <p>Account is already logged in!</p>
       </div>
     </main>
 

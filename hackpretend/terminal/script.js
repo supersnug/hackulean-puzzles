@@ -1,8 +1,20 @@
 const OUTAGE_KEY = "hackulean_server_unavailable";
-if (localStorage.getItem(OUTAGE_KEY) === "1") {
+const LOGOUT_LOCK_KEY = "hackpretend_logged_out";
+const outageActive = localStorage.getItem(OUTAGE_KEY) === "1";
+const accountLockedOut = localStorage.getItem(LOGOUT_LOCK_KEY) === "1";
+
+if (outageActive) {
   window.location.replace("/hackpretend/error");
 }
 
+const terminalShell = document.getElementById("terminal-shell");
+const accountStateError = document.getElementById("account-state-error");
+
+if (!outageActive && !accountLockedOut) {
+  terminalShell.classList.add("hidden");
+  terminalShell.setAttribute("aria-hidden", "true");
+  accountStateError.classList.remove("hidden");
+}
 
 const ACCESS_CODE = "TERM-1A07-9JTB";
 const DATA_LIMIT = 1000000000;
