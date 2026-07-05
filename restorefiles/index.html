@@ -11,30 +11,67 @@
     <div id="walk-grid" class="walk-grid" aria-hidden="true"></div>
     <div class="grid-glow" aria-hidden="true"></div>
 
-    <main class="panel">
-      <p class="eyebrow">SYSTEM ROOT // PUZZLE 03</p>
-      <div class="status-line">
+    <main class="panel" id="loading-panel">
+      <div class="status-line" id="status-line">
         <span class="status-dot" aria-hidden="true"></span>
-        <span>NODE RESERVED</span>
+        <span id="status-text">DATABASE LOADING</span>
       </div>
 
-      <h1>Puzzle 03</h1>
+      <h1 data-text="HacKulean Files">HacKulean Files</h1>
       <p class="lead">
-        This channel is online, but no puzzle payload has been deployed yet.
+        Database startup complete.
       </p>
 
-      <section class="placeholder" aria-labelledby="placeholder-title">
-        <p class="placeholder-label">TRANSMISSION STATUS</p>
-        <h2 id="placeholder-title">Awaiting puzzle data...</h2>
-        <div class="progress-track" aria-hidden="true">
-          <span></span>
+      <section class="placeholder" aria-labelledby="loading-title" aria-live="polite">
+        <p class="placeholder-label">SYSTEM STARTUP</p>
+        <div class="loading-heading">
+          <h2 id="loading-title">Loading files...</h2>
+          <strong id="loading-percent">0.0%</strong>
         </div>
-        <p class="placeholder-copy">
-          This page is ready for the next HacKulean mission.
-        </p>
+        <div
+          id="loading-progress"
+          class="progress-track"
+          role="progressbar"
+          aria-label="Recovery payload loading progress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <span id="loading-fill"></span>
+        </div>
+        <p id="loading-message" class="placeholder-copy">Loading database sectors...</p>
       </section>
 
-      <a class="back-link" href="/">Return to Puzzle Root</a>
+    </main>
+
+    <main id="crash-dump" class="crash-dump hidden" aria-label="System crash dump">
+      <pre id="crash-output" role="log" aria-live="polite"></pre>
+      <span class="crash-cursor" aria-hidden="true">_</span>
+    </main>
+
+    <main id="recovery-screen" class="recovery-screen hidden" aria-live="polite">
+      <div class="recovery-badge"><span aria-hidden="true"></span>EMERGENCY ENVIRONMENT</div>
+      <p class="recovery-kicker">HACKULEAN FILE SYSTEM // NODE 03</p>
+      <h1>Recovery Mode</h1>
+      <p class="recovery-message">Automatic startup failed. The system is running with minimal services.</p>
+      <dl class="recovery-status">
+        <div>
+          <dt>ROOT FILESYSTEM</dt>
+          <dd>READ ONLY</dd>
+          <button id="remount-button" type="button">REMOUNT AS READ-WRITE</button>
+        </div>
+        <div>
+          <dt>NETWORK</dt>
+          <dd>OFFLINE</dd>
+          <button id="network-button" type="button">ENABLE NETWORK</button>
+        </div>
+        <div>
+          <dt>RECOVERY SHELL</dt>
+          <dd>READY</dd>
+          <button id="exit-recovery-button" type="button">EXIT RECOVERY</button>
+        </div>
+      </dl>
+      <p class="recovery-prompt">root@recovery-node-03:~# <span aria-hidden="true">_</span></p>
     </main>
     <script src="script.js"></script>
   </body>
