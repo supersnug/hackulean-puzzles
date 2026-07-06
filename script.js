@@ -37,6 +37,45 @@ function applyCompletionStatus(map) {
   });
 }
 
+function applyPrerequisiteLocks(map) {
+  const gatedCards = document.querySelectorAll(".puzzle-card[data-requires]");
+
+  gatedCards.forEach((card) => {
+    const requirements = card.dataset.requires
+      .split(",")
+      .map((requirement) => requirement.trim())
+      .filter(Boolean);
+    const requirementsMet = requirements.every((requirement) => Boolean(map[requirement]));
+    const state = card.querySelector(".puzzle-state");
+    const description = card.querySelector(".puzzle-description");
+
+    if (!requirementsMet) {
+      card.classList.add("puzzle-card-locked");
+      card.setAttribute("aria-disabled", "true");
+      if (card.matches("a")) card.setAttribute("tabindex", "-1");
+      return;
+    }
+
+    if (card.dataset.comingSoon === "true") {
+      if (state) state.textContent = "COMING SOON";
+      if (description) description.textContent = "Prerequisite complete. This puzzle has not been deployed yet.";
+      return;
+    }
+
+    card.classList.remove("puzzle-card-locked");
+    card.classList.add("puzzle-card-active");
+    card.removeAttribute("aria-disabled");
+    card.removeAttribute("tabindex");
+    if (state && !card.classList.contains("puzzle-card-complete")) state.textContent = "ENTER";
+    if (description) description.textContent = "The first three missions hide a larger secret. Cross the checkpoint to begin Metapuzzle 1.";
+  });
+}
+
+function preventLockedNavigation(event) {
+  const lockedCard = event.target.closest("a.puzzle-card[aria-disabled='true']");
+  if (lockedCard) event.preventDefault();
+}
+
 function processCompletionSignal() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("signal") !== COMPLETION_SIGNAL) return;
@@ -56,7 +95,10 @@ function processCompletionSignal() {
 }
 
 processCompletionSignal();
-applyCompletionStatus(readCompletionMap());
+const completionMap = readCompletionMap();
+applyCompletionStatus(completionMap);
+applyPrerequisiteLocks(completionMap);
+document.addEventListener("click", preventLockedNavigation);
 
 const puzzleCards = document.querySelectorAll(".puzzle-card");
 

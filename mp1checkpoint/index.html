@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07121f" />
+    <title>Metapuzzle 1 Checkpoint - HacKulean Puzzles</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="grid" aria-hidden="true"></div>
+    <main class="checkpoint" aria-labelledby="checkpoint-title">
+      <section id="warning-view">
+        <div class="warning-icon" aria-hidden="true">!</div>
+        <p class="eyebrow">SYSTEM CHECKPOINT // IRREVERSIBLE SESSION</p>
+        <h1 id="checkpoint-title">Start Metapuzzle 1?</h1>
+        <div class="warning-copy">
+          <p>Continuing will <strong>start Metapuzzle 1</strong>.</p>
+          <p>You will not be able to complete puzzles normally until Metapuzzle 1 is complete.</p>
+        </div>
+        <p id="prerequisite-status" class="status"><span aria-hidden="true"></span> Puzzles 01–03 verified</p>
+        <div class="actions">
+          <a class="button button-secondary" href="/">Return to Puzzle Root</a>
+          <button id="start-button" class="button button-danger" type="button">Start Metapuzzle 1</button>
+        </div>
+        <p id="checkpoint-note" class="checkpoint-note" aria-live="polite"></p>
+      </section>
+
+      <section id="active-view" class="active-view hidden" aria-labelledby="active-title">
+        <div class="active-icon" aria-hidden="true">04</div>
+        <p class="eyebrow">METAPUZZLE SESSION // ACTIVE</p>
+        <h1 id="active-title">Metapuzzle 1</h1>
+        <p class="timer-label">TOTAL TIME SPENT</p>
+        <time id="elapsed-time" class="elapsed-time" datetime="PT0S">00:00:00</time>
+        <p class="active-copy">The metapuzzle is currently in progress.</p>
+        <div class="actions">
+          <a class="button button-secondary" href="/">Return to Puzzle Root</a>
+          <a class="button button-active" href="/metapuzzle/1">Resume Metapuzzle 1</a>
+        </div>
+      </section>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
