@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Human Verification</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="hud">
+      <div><span class="hud-label">CURSOR INTEGRITY</span><div id="hearts" class="hearts">♥ ♥ ♥</div></div>
+      <div class="boss-hud">
+        <span class="hud-label">VERIFICATION SENTINEL</span>
+        <div class="boss-track"><span id="boss-fill"></span></div>
+      </div>
+    </header>
+
+    <main id="arena" class="arena" aria-label="Human verification arena">
+      <div id="sentinel" class="sentinel" role="button" aria-label="Start verification" tabindex="0"></div>
+      <p id="instructions" class="instructions">CLICK THE CYAN SQUARE TO BEGIN HUMAN VERIFICATION</p>
+      <div id="message" class="verification-message hidden" aria-live="assertive"></div>
+      <button id="restart-button" class="restart-button hidden" type="button">RESTART VERIFICATION</button>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
