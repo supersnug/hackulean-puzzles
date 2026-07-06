@@ -540,7 +540,6 @@ function renderDatabaseFiles() {
 
 cleanCorruptionButton.addEventListener("click", () => {
   if (!verificationIsComplete()) {
-    window.location.href = "/restorefiles/humanverification";
     return;
   }
   cleaningEnabled = true;
