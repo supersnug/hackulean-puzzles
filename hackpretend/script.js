@@ -390,6 +390,11 @@ privilegeToggle.addEventListener("click", () => {
     return;
   }
 
+  if (localStorage.getItem("hackulean_metapuzzle_1_active") === "1") {
+    window.location.href = "/hackpretend/escalate/error";
+    return;
+  }
+
   window.location.href = "/hackpretend/escalate";
 });
 

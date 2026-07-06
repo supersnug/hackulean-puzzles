@@ -134,6 +134,7 @@ h1 {
 .button-secondary { border: 1px solid var(--accent); color: var(--text); background: rgba(46,196,182,.08); }
 .button-danger { border: 1px solid var(--danger); color: var(--text); background: rgba(255,102,117,.14); }
 .button-active { border: 1px solid var(--ready); color: var(--text); background: rgba(126,242,154,.1); }
+.button-finish { width: 100%; margin-top: 14px; border: 1px solid var(--warning); color: var(--text); background: rgba(255,209,102,.12); }
 .button:disabled { cursor: not-allowed; opacity: .55; }
 .button:hover, .button:focus-visible { outline: none; filter: brightness(1.2); box-shadow: 0 0 0 2px rgba(255,255,255,.08); }
 .checkpoint-note { min-height: 1.4em; margin: 16px 0 0; color: var(--warning); font-size: .78rem; }

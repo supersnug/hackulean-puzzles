@@ -1,4 +1,6 @@
 (() => {
+  if (window.HACKULEAN_SUPPRESS_MP1_STATUS) return;
+
   const ACTIVE_KEY = "hackulean_metapuzzle_1_active";
   const STARTED_AT_KEY = "hackulean_metapuzzle_1_started_at";
 

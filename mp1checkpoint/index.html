@@ -37,6 +37,15 @@
           <a class="button button-secondary" href="/">Return to Puzzle Root</a>
           <a class="button button-active" href="/metapuzzle/1">Resume Metapuzzle 1</a>
         </div>
+        <button id="finish-mp1-button" class="button button-finish hidden" type="button">Complete Metapuzzle 1</button>
+      </section>
+      <section id="completed-view" class="active-view hidden" aria-labelledby="completed-title">
+        <div class="active-icon">✓</div>
+        <p class="eyebrow">METAPUZZLE SESSION // COMPLETE</p>
+        <h1 id="completed-title">Metapuzzle 1 Complete</h1>
+        <p class="timer-label">FINAL TIME</p>
+        <time id="final-time" class="elapsed-time">00:00:00</time>
+        <div class="actions"><a class="button button-active" href="/?signal=puzzle_completed&puzzle=04-metapuzzle-1">Return to Puzzle Root</a></div>
       </section>
     </main>
     <script src="script.js"></script>

@@ -1,3 +1,4 @@
+if (!window.HACKULEAN_MP1_P02_VARIANT) {
 const actionButton = document.getElementById("action-button");
 const pageBody = document.body;
 const gridOverlay = document.getElementById("grid-overlay");
@@ -1293,4 +1294,5 @@ if (actionButton) {
 
     revealGridFromCenter();
   });
+}
 }

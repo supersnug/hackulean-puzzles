@@ -1,6 +1,7 @@
 const COMPLETION_STORE_KEY = "hackulean_puzzle_completion_map";
 const METAPUZZLE_ACTIVE_KEY = "hackulean_metapuzzle_1_active";
 const METAPUZZLE_STARTED_AT_KEY = "hackulean_metapuzzle_1_started_at";
+const METAPUZZLE_READY_KEY = "hackulean_mp1_completion_ready";
 const REQUIRED_PUZZLES = ["01-hackpretend", "02-destroydatabase", "03-restorefiles"];
 
 const startButton = document.getElementById("start-button");
@@ -9,6 +10,9 @@ const prerequisiteStatus = document.getElementById("prerequisite-status");
 const warningView = document.getElementById("warning-view");
 const activeView = document.getElementById("active-view");
 const elapsedTime = document.getElementById("elapsed-time");
+const finishMp1Button = document.getElementById("finish-mp1-button");
+const completedView = document.getElementById("completed-view");
+const finalTime = document.getElementById("final-time");
 
 let elapsedTimer = 0;
 
@@ -73,6 +77,22 @@ function showActiveSession(startTime) {
 
   updateElapsedTime();
   elapsedTimer = window.setInterval(updateElapsedTime, 1000);
+  if (localStorage.getItem(METAPUZZLE_READY_KEY) === "1") finishMp1Button.classList.remove("hidden");
+}
+
+function completeMetapuzzle() {
+  const elapsed = startTime ? Date.now() - startTime : 0;
+  let completionMap = {};
+  try { completionMap = JSON.parse(localStorage.getItem(COMPLETION_STORE_KEY) || "{}"); } catch (_error) {}
+  completionMap = completionMap && typeof completionMap === "object" ? completionMap : {};
+  completionMap["02-destroydatabase"] = true;
+  localStorage.clear();
+  localStorage.setItem(COMPLETION_STORE_KEY, JSON.stringify(completionMap));
+  window.clearInterval(elapsedTimer);
+  activeView.classList.add("hidden");
+  completedView.classList.remove("hidden");
+  finalTime.textContent = formatElapsed(elapsed);
+  finalTime.dateTime = `PT${Math.floor(elapsed / 1000)}S`;
 }
 
 const startTime = getStartTime();
@@ -88,5 +108,6 @@ if (startTime) {
 }
 
 startButton.addEventListener("click", startMetapuzzle);
+finishMp1Button.addEventListener("click", completeMetapuzzle);
 
 window.addEventListener("pagehide", () => window.clearInterval(elapsedTimer));

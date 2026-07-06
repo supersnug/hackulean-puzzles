@@ -168,6 +168,10 @@ const CLEAN_DATABASE_KEY = "restore_files_clean_database";
 const FILE_CORRUPTION_KEY = "restore_files_corrupted_file_indexes";
 const VERIFICATION_KEY = "restore_files_verification_complete";
 const CLEANED_FILES_KEY = "restore_files_cleaned_file_indexes";
+const MP1_ACTIVE_KEY = "hackulean_metapuzzle_1_active";
+const MP1_PUZZLE_03_UNLOCKED_KEY = "hackulean_mp1_puzzle_03_unlocked";
+const MP1_AW_SNAP_KEY = "hackulean_mp1_puzzle_03_aw_snap";
+const MP1_RECOVERY_ACCESS_KEY = "hackulean_mp1_puzzle_03_recovery_access";
 const STUCK_PROGRESS = 62.3;
 const loadingFill = document.getElementById("loading-fill");
 const loadingPercent = document.getElementById("loading-percent");
@@ -204,6 +208,19 @@ const networkCutsceneText = document.getElementById("network-cutscene-text");
 const scamMessageLayer = document.getElementById("scam-message-layer");
 const attackEffectLayer = document.getElementById("attack-effect-layer");
 const victoryMessage = document.getElementById("victory-message");
+const notRespondingOverlay = document.getElementById("not-responding-overlay");
+const notRespondingCopy = document.getElementById("not-responding-copy");
+const windowsCloseButton = document.getElementById("windows-close-button");
+const closeProgramButton = document.getElementById("close-program-button");
+const waitProgramButton = document.getElementById("wait-program-button");
+const awSnapScreen = document.getElementById("aw-snap-screen");
+const awSnapReload = document.getElementById("aw-snap-reload");
+const mp1PasswordOverlay = document.getElementById("mp1-password-overlay");
+const mp1PasswordForm = document.getElementById("mp1-password-form");
+const mp1RecoveryPassword = document.getElementById("mp1-recovery-password");
+const mp1PasswordError = document.getElementById("mp1-password-error");
+const mp1PasswordClose = document.getElementById("mp1-password-close");
+const mp1PasswordCancel = document.getElementById("mp1-password-cancel");
 
 const scamEntities = [];
 let entityAnimationFrame = 0;
@@ -412,9 +429,69 @@ function renderLoadingProgress(value) {
   loadingProgress.setAttribute("aria-valuenow", value.toFixed(1));
 }
 
+function mp1Puzzle03IsUnlocked() {
+  try {
+    return (
+      window.localStorage.getItem(MP1_ACTIVE_KEY) === "1" &&
+      window.localStorage.getItem(MP1_PUZZLE_03_UNLOCKED_KEY) === "1"
+    );
+  } catch (_error) {
+    return false;
+  }
+}
+
+function showNotRespondingDialog() {
+  window.clearInterval(walkTimer);
+  loadingTitle.textContent = "Loading files...";
+  loadingMessage.textContent = "Loading database sectors...";
+  statusText.textContent = "DATABASE LOADING";
+  document.body.classList.add("windows-not-responding");
+  notRespondingOverlay.classList.remove("hidden");
+  waitProgramButton.focus();
+}
+
+function awSnapIsPending() {
+  try {
+    return (
+      window.localStorage.getItem(MP1_ACTIVE_KEY) === "1" &&
+      window.localStorage.getItem(MP1_AW_SNAP_KEY) === "1"
+    );
+  } catch (_error) {
+    return false;
+  }
+}
+
+function showAwSnapScreen() {
+  try {
+    window.localStorage.setItem(MP1_AW_SNAP_KEY, "1");
+  } catch (_error) {
+    // The fake crash can still be displayed without storage.
+  }
+  window.clearInterval(walkTimer);
+  document.body.classList.remove("windows-not-responding");
+  document.body.classList.add("mp1-aw-snap");
+  notRespondingOverlay.classList.add("hidden");
+  mp1PasswordOverlay.classList.add("hidden");
+  awSnapScreen.classList.remove("hidden");
+}
+
+function showMp1PasswordPrompt() {
+  window.clearInterval(walkTimer);
+  document.body.classList.add("mp1-aw-snap");
+  awSnapScreen.classList.remove("hidden");
+  mp1PasswordOverlay.classList.remove("hidden");
+  window.setTimeout(() => mp1RecoveryPassword.focus(), 0);
+}
+
 function triggerLoadingFailure() {
   loadingValue = STUCK_PROGRESS;
   renderLoadingProgress(loadingValue);
+
+  if (mp1Puzzle03IsUnlocked()) {
+    showNotRespondingDialog();
+    return;
+  }
+
   loadingTitle.textContent = "Loading process unresponsive";
   loadingMessage.textContent = "WARNING: Malicious data detected! System integrity compromised. Attempting to recover...";
   statusText.textContent = "VIRUS DETECTED";
@@ -422,6 +499,56 @@ function triggerLoadingFailure() {
   document.body.classList.add("is-glitching");
   window.setTimeout(startCrashDump, 3000);
 }
+
+function rejectWindowsDialogAction(message) {
+  notRespondingCopy.textContent = message;
+  const dialog = notRespondingOverlay.querySelector(".windows-dialog");
+  dialog.classList.remove("is-unresponsive");
+  void dialog.offsetWidth;
+  dialog.classList.add("is-unresponsive");
+}
+
+windowsCloseButton.addEventListener("click", () => {
+  showAwSnapScreen();
+});
+
+closeProgramButton.addEventListener("click", () => {
+  showAwSnapScreen();
+});
+
+waitProgramButton.addEventListener("click", () => {
+  rejectWindowsDialogAction("Windows is waiting for HacKulean Files to respond...");
+});
+
+awSnapReload?.addEventListener("click", () => window.location.reload());
+
+function dismissMp1PasswordPrompt() {
+  mp1PasswordOverlay.classList.add("hidden");
+  mp1RecoveryPassword.value = "";
+  mp1PasswordError.textContent = "";
+  showAwSnapScreen();
+}
+
+mp1PasswordClose.addEventListener("click", dismissMp1PasswordPrompt);
+mp1PasswordCancel.addEventListener("click", dismissMp1PasswordPrompt);
+
+mp1PasswordForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  if (mp1RecoveryPassword.value === "12345") {
+    try {
+      window.localStorage.setItem(MP1_RECOVERY_ACCESS_KEY, "1");
+      window.localStorage.removeItem(MP1_AW_SNAP_KEY);
+    } catch (_error) {
+      // Continue to the gated route; it will show a fake 404 if storage failed.
+    }
+    window.location.href = "/restorefiles/recovery";
+    return;
+  }
+
+  mp1PasswordError.textContent = "Incorrect password.";
+  window.setTimeout(showAwSnapScreen, 350);
+});
 
 function typeCrashLine(text, line) {
   return new Promise((resolve) => {
@@ -1348,14 +1475,17 @@ remountButton.addEventListener("click", runRemountSequence);
 
 const cleanDatabaseSaved = cleanDatabaseIsSaved();
 const recoveryModeSaved = recoveryModeIsSaved();
+const mp1AwSnapPending = awSnapIsPending();
 
-if (cleanDatabaseSaved) {
+if (mp1AwSnapPending) {
+  showMp1PasswordPrompt();
+} else if (cleanDatabaseSaved) {
   showDatabaseManagement();
 } else if (recoveryModeSaved) {
   showRecoveryMode();
 }
 
-const loadingTimer = cleanDatabaseSaved || recoveryModeSaved
+const loadingTimer = cleanDatabaseSaved || recoveryModeSaved || mp1AwSnapPending
   ? 0
   : window.setInterval(() => {
     loadingValue = Math.min(STUCK_PROGRESS, loadingValue + 0.7 + Math.random() * 1.8);

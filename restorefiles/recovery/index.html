@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#01100b" />
+    <title>Recovery Mode</title>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="is-crashed">
+    <main id="recovery-screen" class="recovery-screen">
+      <div class="recovery-badge"><span aria-hidden="true"></span>EMERGENCY ENVIRONMENT</div>
+      <p class="recovery-kicker">HACKULEAN FILE SYSTEM // NODE 03</p>
+      <h1>Recovery Mode</h1>
+      <p class="recovery-message">Automatic startup failed. The system is running with minimal services.</p>
+      <dl class="recovery-status">
+        <div><dt>ROOT FILESYSTEM</dt><dd id="filesystem-status">READ ONLY</dd><button id="remount-button" type="button">REMOUNT AS READ-WRITE</button></div>
+        <div><dt>NETWORK</dt><dd id="network-status">OFFLINE</dd><button id="network-button" type="button">ENABLE NETWORK</button></div>
+        <div><dt>RECOVERY SHELL</dt><dd>READY</dd><button id="exit-recovery-button" type="button" disabled>EXIT RECOVERY</button></div>
+      </dl>
+      <p id="recovery-notice" class="recovery-notice hidden" aria-live="polite"></p>
+      <p id="terminal-help" class="terminal-help hidden">Use 'mount -o remount,rw /' to remount!</p>
+      <p id="recovery-prompt" class="recovery-prompt" role="button">root@recovery-node-03:~# <span aria-hidden="true">_</span></p>
+      <form id="terminal-form" class="terminal-form hidden" autocomplete="off">
+        <label for="terminal-input">root@recovery-node-03:~#</label>
+        <input id="terminal-input" type="text" spellcheck="false" />
+      </form>
+    </main>
+
+    <main id="database-management" class="database-management hidden" aria-labelledby="management-title">
+      <h1 id="management-title">Database Management</h1>
+      <button id="clean-corruption-button" class="clean-corruption-button" type="button">CLEAN CORRUPTION</button>
+      <section class="database-file-grid" aria-label="Database files">
+        <article class="database-file-card corrupted" style="--file-delay: 0ms">
+          <span>system_restore_manifest.db</span>
+          <strong id="file-status" class="database-file-status">CORRUPTED</strong>
+        </article>
+      </section>
+    </main>
+
+    <div id="root-password-modal" class="password-modal hidden" role="dialog" aria-modal="true" aria-labelledby="password-title">
+      <div class="password-modal-panel">
+        <p class="recovery-kicker">PRIVILEGED OPERATION</p>
+        <h2 id="password-title">Authentication required</h2>
+        <label for="root-password">Root password</label>
+        <input id="root-password" type="password" placeholder="Password unavailable" disabled />
+        <p id="password-modal-status">Enter the root password to continue.</p>
+      </div>
+    </div>
+
+    <div id="cleaning-modal" class="cleaning-modal hidden" role="dialog" aria-modal="true" aria-labelledby="cleaning-title">
+      <div class="cleaning-modal-panel">
+        <p class="placeholder-label">DATABASE REPAIR</p>
+        <h2 id="cleaning-title">Cleaning corrupted file</h2>
+        <p>Repairing system_restore_manifest.db...</p>
+        <div class="cleaning-progress"><span id="cleaning-fill"></span></div>
+        <strong id="cleaning-percent">0%</strong>
+      </div>
+    </div>
+
+    <section id="puzzle-complete" class="puzzle-complete hidden" aria-labelledby="complete-title">
+      <div class="complete-panel">
+        <p>REST0RATI0N // S1GNAL SPL1T</p>
+        <h1 id="complete-title" data-text="Puzzle Complete">Puzzl_ C0mplete</h1>
+        <div class="completion-noise">FILES REPAIRED? // DATA RECOVERED?? // SYSTEM STABLE???</div>
+        <p>All corrupted files were restored and the database is _____.</p>
+        <button id="back-root-button" type="button">Back to Puzzle Root</button>
+      </div>
+    </section>
+    <script src="script.js"></script>
+    <script src="../../metapuzzle-status.js"></script>
+  </body>
+</html>

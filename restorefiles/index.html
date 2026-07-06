@@ -119,6 +119,53 @@
     <div id="network-cutscene" class="network-cutscene hidden" aria-live="assertive">
       <p id="network-cutscene-text">NETWORK LINK ESTABLISHED</p>
     </div>
+    <div id="not-responding-overlay" class="not-responding-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="not-responding-title">
+      <div class="windows-dialog">
+        <div class="windows-titlebar">
+          <span>HacKulean Files</span>
+          <button id="windows-close-button" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="windows-dialog-body">
+          <div class="windows-app-icon" aria-hidden="true"><span></span></div>
+          <div>
+            <h2 id="not-responding-title">HacKulean Files is not responding</h2>
+            <p id="not-responding-copy">If you close the program, you might lose information.</p>
+          </div>
+        </div>
+        <div class="windows-dialog-actions">
+          <button id="close-program-button" type="button">Close the program</button>
+          <button id="wait-program-button" type="button">Wait for this program to respond</button>
+        </div>
+      </div>
+    </div>
+    <div id="aw-snap-screen" class="aw-snap-screen hidden" aria-live="assertive">
+      <main class="aw-snap-content">
+        <div class="aw-snap-icon" aria-hidden="true">:(</div>
+        <h1>Aw, Snap!</h1>
+        <p>Something went wrong while displaying this webpage.</p>
+        <p class="aw-snap-help">Try refreshing the page.</p>
+        <p class="aw-snap-code">Error code: <strong>s3e2v4gt</strong></p>
+      </main>
+    </div>
+    <div id="mp1-password-overlay" class="mp1-password-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mp1-password-title">
+      <form id="mp1-password-form" class="mp1-password-dialog" autocomplete="off">
+        <div class="mp1-password-titlebar">
+          <span>Restricted Recovery</span>
+          <button id="mp1-password-close" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="mp1-password-content">
+          <h2 id="mp1-password-title">Enter password</h2>
+          <p>A password is required to restore this session.</p>
+          <label for="mp1-recovery-password">Password</label>
+          <input id="mp1-recovery-password" type="password" inputmode="numeric" autofocus required />
+          <p id="mp1-password-error" class="mp1-password-error" aria-live="polite"></p>
+        </div>
+        <div class="mp1-password-actions">
+          <button id="mp1-password-cancel" type="button">Cancel</button>
+          <button type="submit">OK</button>
+        </div>
+      </form>
+    </div>
     <div id="scam-message-layer" class="scam-message-layer" aria-hidden="true"></div>
     <div id="attack-effect-layer" class="attack-effect-layer" aria-hidden="true"></div>
     <script src="script.js"></script>

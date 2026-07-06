@@ -1,0 +1,129 @@
+/* MP1-only states. Base recovery and database visuals come from ../style.css. */
+
+.terminal-help {
+  width: min(580px, 100%);
+  margin: 14px 0 0;
+  color: #51d1ff;
+  font-weight: 700;
+}
+
+.recovery-prompt[role="button"] { width: max-content; cursor: default; }
+.recovery-prompt.is-ready {
+  color: #51d1ff;
+  text-shadow: 0 0 12px #51d1ff;
+  animation: prompt-callout 650ms steps(1) infinite;
+  cursor: pointer;
+}
+
+.terminal-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(580px, 100%);
+  margin-top: 26px;
+  color: #51d1ff;
+}
+
+.terminal-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px;
+  border: 0;
+  border-bottom: 1px solid #51d1ff;
+  outline: 0;
+  color: #dff8ff;
+  background: transparent;
+  font: inherit;
+}
+
+body.corruption-alert .recovery-status div {
+  border-color: #ff5366;
+  background: rgba(77, 5, 15, .9);
+  animation: boxes-danger 360ms steps(1) infinite;
+}
+
+body.corruption-alert .recovery-status {
+  border-color: #ff5366;
+  background: rgba(255, 83, 102, .55);
+}
+
+#exit-recovery-button.is-urgent {
+  opacity: 1;
+  border-color: #fff;
+  color: #fff;
+  background: #b61227;
+  filter: none;
+  animation: exit-pulse 350ms ease-in-out infinite alternate;
+}
+
+.password-modal-panel input:disabled {
+  color: #61736a;
+  border-color: #40554a;
+  background: #07100c;
+  cursor: not-allowed;
+}
+
+.database-management .clean-corruption-button {
+  visibility: visible;
+  opacity: 1;
+  border-color: #51d1ff;
+  color: #bceeff;
+  background: #093344;
+  animation: none;
+}
+
+.database-management .database-file-grid { grid-template-columns: 1fr; }
+
+.puzzle-complete {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background: repeating-linear-gradient(0deg, #061019 0 4px, #091520 4px 5px);
+}
+
+.complete-panel {
+  position: relative;
+  width: min(720px, 100%);
+  padding: clamp(28px, 6vw, 55px);
+  border: 1px solid #ff5366;
+  color: #dff8ff;
+  background: rgba(3, 12, 18, .94);
+  box-shadow: -9px 0 rgba(69,217,223,.14), 9px 0 rgba(255,83,102,.14);
+  text-align: center;
+}
+
+.complete-panel > p:first-child { color: #ff5366; font-size: .72rem; letter-spacing: .16em; }
+.complete-panel h1 { font-size: clamp(2.2rem, 8vw, 5rem); text-shadow: -4px 0 #45d9df, 4px 0 #ff5366; animation: complete-glitch 1.7s steps(1) infinite; }
+.complete-panel > p { color: #9cd8ef; line-height: 1.55; }
+.completion-noise { margin: 24px 0; padding: 12px; border: 1px dashed #ffbd59; color: #ffbd59; font-size: .72rem; }
+.complete-panel button { margin-top: 18px; border: 1px solid #ff5366; color: #dff8ff; background: #481923; font: inherit; padding: 11px 15px; cursor: pointer; }
+
+.fake-404 {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  padding: 24px;
+  color: #d8dce5;
+  background: #0d1016;
+  font-family: Arial, sans-serif;
+}
+
+.fake-404 main { width: min(620px, 100%); }
+.fake-404 h1 { margin: 0 0 14px; font: 700 2rem Arial, sans-serif; text-transform: none; }
+.fake-404 p { color: #9aa1ad; }
+
+@keyframes prompt-callout { 50% { opacity: .35; } }
+@keyframes boxes-danger { 50% { background: rgba(142, 8, 25, .94); transform: translateX(2px); } }
+@keyframes exit-pulse { to { box-shadow: 0 0 24px #ff5366; transform: scale(1.025); } }
+@keyframes complete-glitch { 0%, 88%, 100% { transform: none; } 89% { transform: translate(-5px,2px); } 93% { transform: translate(4px,-2px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .recovery-prompt.is-ready,
+  body.corruption-alert .recovery-status div,
+  #exit-recovery-button.is-urgent,
+  .complete-panel h1 { animation: none; }
+}

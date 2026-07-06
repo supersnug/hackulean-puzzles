@@ -144,3 +144,45 @@ button:disabled {
 .success-screen button:hover {
   filter: brightness(1.08);
 }
+
+.mp1-success-screen {
+  position: relative;
+  overflow: hidden;
+  color: #edf9ff;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.025) 4px 5px),
+    radial-gradient(circle at 20% 20%, rgba(255, 102, 117, .2), transparent 42%),
+    linear-gradient(140deg, #071018, #150b13);
+}
+
+.mp1-success-screen::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(transparent 24%, rgba(69,217,223,.1) 24% 27%, transparent 27% 71%, rgba(255,104,120,.1) 71% 74%, transparent 74%);
+  animation: mp1-scan-jump 2.4s steps(1) infinite;
+}
+
+.mp1-completion { position: relative; padding: 32px; border: 1px solid #ff6878; background: rgba(5,12,18,.86); box-shadow: -8px 0 rgba(69,217,223,.13), 8px 0 rgba(255,104,120,.13); }
+.mp1-kicker { color: #ff6878 !important; font-size: .72rem; letter-spacing: .15em; }
+.mp1-success-screen h1 { position: relative; color: #edf9ff; text-shadow: -3px 0 #45d9df, 3px 0 #ff6878; animation: mp1-title-glitch 1.8s steps(1) infinite; }
+.mp1-success-screen .missing-copy { color: #ff6878; text-decoration: line-through; }
+.mp1-success-screen .mp1-fragment { margin-top: 22px; color: #ffbd59; font-size: .72rem; letter-spacing: .12em; }
+.mp1-success-screen button { border-color: #ff6878; background: linear-gradient(180deg, #481923, #291018); }
+
+@keyframes mp1-title-glitch {
+  0%, 88%, 100% { transform: translate(0); }
+  89% { transform: translate(-5px, 2px); }
+  92% { transform: translate(4px, -1px); }
+}
+
+@keyframes mp1-scan-jump {
+  0%, 84%, 100% { transform: translateY(0); }
+  85% { transform: translateY(8px); }
+  88% { transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp1-success-screen::before, .mp1-success-screen h1 { animation: none; }
+}

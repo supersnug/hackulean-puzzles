@@ -992,6 +992,193 @@ body.cleaning-enabled .database-file-card.corrupted { cursor: pointer; }
   cursor: pointer;
 }
 
+.not-responding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(7, 18, 31, .2);
+  backdrop-filter: blur(1.5px) grayscale(.25);
+}
+
+.windows-dialog {
+  width: min(560px, 100%);
+  overflow: hidden;
+  border: 1px solid #b8bcc4;
+  border-radius: 8px;
+  color: #17191d;
+  background: #f5f5f5;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .42), 0 0 0 1px rgba(255,255,255,.7) inset;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.windows-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  padding-left: 14px;
+  color: #272a30;
+  background: #fff;
+  font-size: .82rem;
+}
+
+.windows-titlebar button {
+  align-self: stretch;
+  width: 46px;
+  border: 0;
+  color: #272a30;
+  background: transparent;
+  font: 1.3rem/1 "Segoe UI", Arial, sans-serif;
+  cursor: default;
+}
+
+.windows-titlebar button:hover { color: #fff; background: #c42b1c; }
+
+.windows-dialog-body {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 18px;
+  align-items: start;
+  padding: 28px 28px 22px;
+}
+
+.windows-dialog-body h2 {
+  margin: 0 0 9px;
+  color: #17191d;
+  font: 400 1.28rem/1.3 "Segoe UI", Arial, sans-serif;
+}
+
+.windows-dialog-body p {
+  margin: 0;
+  color: #4b4e55;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.windows-app-icon {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #1ca6d9, #1761bb);
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+
+.windows-app-icon::before,
+.windows-app-icon::after,
+.windows-app-icon span::before,
+.windows-app-icon span::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: rgba(255,255,255,.92);
+}
+
+.windows-app-icon::before { top: 7px; left: 7px; }
+.windows-app-icon::after { top: 7px; right: 7px; }
+.windows-app-icon span::before { bottom: 7px; left: 7px; }
+.windows-app-icon span::after { right: 7px; bottom: 7px; }
+
+.windows-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  background: #ececec;
+}
+
+.windows-dialog-actions button {
+  min-height: 34px;
+  padding: 7px 15px;
+  border: 1px solid #8c9097;
+  border-radius: 3px;
+  color: #191b20;
+  background: #fff;
+  font: .82rem "Segoe UI", Arial, sans-serif;
+  cursor: default;
+}
+
+.windows-dialog-actions button:focus,
+.windows-dialog-actions button:hover {
+  border-color: #0067c0;
+  outline: 1px solid #0067c0;
+}
+
+.windows-dialog.is-unresponsive { animation: windows-dialog-reject 180ms ease-in-out; }
+body.windows-not-responding #loading-panel { filter: saturate(.65); }
+
+.aw-snap-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #3c4043;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.aw-snap-content { width: min(600px, 100%); }
+.aw-snap-icon { margin-bottom: 25px; color: #5f6368; font-size: 4.6rem; font-weight: 700; transform: rotate(90deg); transform-origin: 35px center; }
+.aw-snap-content h1 { margin: 0 0 18px; color: #202124; font: 400 clamp(2rem, 6vw, 2.8rem)/1.2 Arial, Helvetica, sans-serif; text-transform: none; letter-spacing: 0; }
+.aw-snap-content p { margin: 8px 0; color: #5f6368; line-height: 1.5; }
+.aw-snap-content .aw-snap-help { margin-top: 18px; }
+.aw-snap-content button { margin-top: 18px; padding: 9px 18px; border: 0; border-radius: 4px; color: #fff; background: #1a73e8; font: 500 .88rem Arial, Helvetica, sans-serif; cursor: pointer; }
+.aw-snap-content .aw-snap-code { margin-top: 30px; font-size: .76rem; text-transform: uppercase; }
+.aw-snap-code strong {
+  color: #3c4043;
+  font-family: monospace;
+  text-transform: lowercase;
+}
+
+.mp1-password-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(32, 33, 36, .24);
+}
+
+.mp1-password-dialog {
+  width: min(430px, 100%);
+  overflow: hidden;
+  border: 1px solid #b8bcc4;
+  border-radius: 7px;
+  color: #17191d;
+  background: #f5f5f5;
+  box-shadow: 0 18px 60px rgba(0,0,0,.36);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.mp1-password-titlebar { display: flex; align-items: center; justify-content: space-between; min-height: 38px; padding-left: 13px; background: #fff; font-size: .8rem; }
+.mp1-password-titlebar button { align-self: stretch; width: 46px; border: 0; color: #272a30; background: transparent; font: 1.3rem "Segoe UI", Arial, sans-serif; }
+.mp1-password-titlebar button:hover { color: #fff; background: #c42b1c; }
+.mp1-password-content { padding: 24px 26px 18px; }
+.mp1-password-content h2 { margin: 0 0 8px; color: #17191d; font: 400 1.3rem "Segoe UI", Arial, sans-serif; }
+.mp1-password-content p { margin: 0 0 18px; color: #555960; font-size: .88rem; }
+.mp1-password-content label { display: block; margin-bottom: 6px; color: #30343a; font-size: .8rem; }
+.mp1-password-content input { width: 100%; padding: 9px 10px; border: 1px solid #7a7e85; color: #17191d; background: #fff; font: 1rem "Segoe UI", Arial, sans-serif; }
+.mp1-password-content input:focus { border-color: #0067c0; outline: 1px solid #0067c0; }
+.mp1-password-content .mp1-password-error { min-height: 1.2em; margin: 8px 0 0; color: #c42b1c; font-size: .78rem; }
+.mp1-password-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 13px 20px 17px; background: #ececec; }
+.mp1-password-actions button { min-width: 80px; padding: 7px 14px; border: 1px solid #858991; border-radius: 3px; color: #17191d; background: #fff; font: .82rem "Segoe UI", Arial, sans-serif; }
+.mp1-password-actions button[type="submit"] { border-color: #0067c0; background: #eaf3ff; }
+
+body.mp1-aw-snap > :not(.aw-snap-screen, .mp1-password-overlay, #metapuzzle-one-status) { display: none !important; }
+
+@keyframes windows-dialog-reject {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-4px); }
+  70% { transform: translateX(4px); }
+}
+
 body.database-management-active .walk-grid {
   display: grid;
   z-index: 0;
@@ -1019,6 +1206,8 @@ body.database-management-active .grid-glow {
 
 @media (max-width: 620px) {
   .database-file-grid { grid-template-columns: 1fr; }
+  .windows-dialog-body { grid-template-columns: 1fr; }
+  .windows-dialog-actions { align-items: stretch; flex-direction: column-reverse; }
 }
 
 @keyframes network-breathe {
