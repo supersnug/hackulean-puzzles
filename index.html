@@ -7,10 +7,30 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div id="ambient-stage-grid" class="ambient-stage-grid" aria-hidden="true"></div>
+    <div id="stage-two-grid" class="stage-two-grid" aria-hidden="true"></div>
+    <section id="stage-two-reveal" class="stage-two-reveal" aria-labelledby="stage-two-title" hidden>
+      <div class="stage-two-gate" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <p class="stage-two-kicker">METAPUZZLE 1 // COMPLETE</p>
+      <h2 id="stage-two-title">Welcome to<br /><strong>HacKulean Puzzles</strong><br />Stage 2</h2>
+      <p class="stage-two-message">The network has expanded. Stage 2 clearance has been granted.</p>
+      <button id="stage-two-continue" class="stage-two-continue" type="button">ENTER STAGE 2</button>
+    </section>
     <div class="background-glow background-glow-left"></div>
     <div class="background-glow background-glow-right"></div>
 
     <main class="shell">
+      <aside class="stage-widget panel" aria-label="Current puzzle stage">
+        <span id="stage-widget-icon" class="stage-widget-icon" aria-hidden="true">1</span>
+        <span class="stage-widget-copy">
+          <span class="stage-widget-label">CURRENT STAGE</span>
+          <strong id="current-stage">STAGE 1</strong>
+        </span>
+        <span id="stage-widget-status" class="stage-widget-status">INITIAL NETWORK</span>
+      </aside>
+
       <header class="masthead panel">
         <p class="eyebrow">SYSTEM ROOT // PUZZLE INDEX</p>
         <h1>HacKulean Puzzles</h1>
@@ -78,75 +98,106 @@
           </span>
           <span class="puzzle-copy">
             <span class="puzzle-title">04 - Metapuzzle 1</span>
-            <span class="puzzle-description">Complete puzzles 01–03 to unlock the first metapuzzle.</span>
+            <span class="puzzle-description">Complete puzzles 01&ndash;03 to unlock the first metapuzzle.</span>
           </span>
-          <span class="puzzle-state">COMPLETE 01–03</span>
+          <span class="puzzle-state">COMPLETE 01&ndash;03</span>
         </a>
 
-        <div class="puzzle-card puzzle-card-locked" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
+        <a
+          class="puzzle-card puzzle-card-locked"
+          href="/fixcorruption"
+          data-puzzle-id="05-fixcorruption"
+          data-requires="04-metapuzzle-1"
+          data-locked-title="05 - ???"
+          data-unlocked-title="05 - Stage 2 Part 01: Fix Corruption"
+          data-unlocked-description="A spreading fault is rewriting protected systems. Trace the damage and repair the corrupted network."
+          aria-disabled="true"
+          tabindex="-1"
+        >
           <span class="icon-frame" aria-hidden="true">
             <span class="icon-core">05</span>
           </span>
           <span class="puzzle-copy">
             <span class="puzzle-title">05 - ???</span>
-            <span class="puzzle-description">LOCKED</span>
+            <span class="puzzle-description">Complete Metapuzzle 1 to unlock Puzzle 05.</span>
           </span>
           <span class="puzzle-state">COMPLETE 04</span>
-        </div>
+        </a>
 
-        <div class="puzzle-card puzzle-card-locked" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
+        <div class="puzzle-card puzzle-card-locked" data-puzzle-id="06-puzzle" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
           <span class="icon-frame" aria-hidden="true">
             <span class="icon-core">06</span>
           </span>
           <span class="puzzle-copy">
             <span class="puzzle-title">06 - ???</span>
-            <span class="puzzle-description">LOCKED</span>
+            <span class="puzzle-description">Complete Metapuzzle 1 to unlock Puzzle 06.</span>
           </span>
           <span class="puzzle-state">COMPLETE 04</span>
         </div>
 
-        <div class="puzzle-card puzzle-card-locked" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
+        <div class="puzzle-card puzzle-card-locked" data-puzzle-id="07-puzzle" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
           <span class="icon-frame" aria-hidden="true">
             <span class="icon-core">07</span>
           </span>
           <span class="puzzle-copy">
             <span class="puzzle-title">07 - ???</span>
-            <span class="puzzle-description">LOCKED</span>
+            <span class="puzzle-description">Complete Metapuzzle 1 to unlock Puzzle 07.</span>
           </span>
           <span class="puzzle-state">COMPLETE 04</span>
         </div>
 
-        <div class="puzzle-card puzzle-card-locked" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
+        <div
+          class="puzzle-card puzzle-card-locked"
+          data-puzzle-id="08-metapuzzle-2"
+          data-requires="05-fixcorruption,06-puzzle,07-puzzle"
+          data-coming-soon="true"
+          data-locked-description="Complete Puzzles 05&ndash;07 to unlock Metapuzzle 2."
+          aria-disabled="true"
+        >
           <span class="icon-frame" aria-hidden="true">
             <span class="icon-core">08</span>
           </span>
           <span class="puzzle-copy">
-            <span class="puzzle-title">08 - ???</span>
-            <span class="puzzle-description">LOCKED</span>
+            <span class="puzzle-title">08 - METAPUZZLE 2</span>
+            <span class="puzzle-description">Complete Puzzles 05&ndash;07 to unlock Metapuzzle 2.</span>
           </span>
-          <span class="puzzle-state">COMPLETE 04</span>
+          <span class="puzzle-state">COMPLETE 05-07</span>
         </div>
 
-        <div class="puzzle-card puzzle-card-locked" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
+        <div
+          class="puzzle-card puzzle-card-locked"
+          data-puzzle-id="09-knowledge-test"
+          data-requires="08-metapuzzle-2"
+          data-coming-soon="true"
+          data-locked-description="Complete Metapuzzle 2 to unlock Puzzle 09."
+          aria-disabled="true"
+        >
           <span class="icon-frame" aria-hidden="true">
             <span class="icon-core">09</span>
           </span>
           <span class="puzzle-copy">
-            <span class="puzzle-title">09 - ???</span>
-            <span class="puzzle-description">LOCKED</span>
+            <span class="puzzle-title">09 - Knowledge Test</span>
+            <span class="puzzle-description">Complete Metapuzzle 2 to unlock Puzzle 09.</span>
           </span>
-          <span class="puzzle-state">COMPLETE 04</span>
+          <span class="puzzle-state">COMPLETE 08</span>
         </div>
 
-        <div class="puzzle-card puzzle-card-locked" data-requires="04-metapuzzle-1" data-coming-soon="true" aria-disabled="true">
+        <div
+          class="puzzle-card puzzle-card-locked"
+          data-puzzle-id="10-final-metapuzzle"
+          data-requires="09-knowledge-test"
+          data-coming-soon="true"
+          data-locked-description="Complete Knowledge Test to unlock Puzzle 10."
+          aria-disabled="true"
+        >
           <span class="icon-frame" aria-hidden="true">
             <span class="icon-core">10</span>
           </span>
           <span class="puzzle-copy">
             <span class="puzzle-title">10 - ???</span>
-            <span class="puzzle-description">LOCKED</span>
+            <span class="puzzle-description">Complete Knowledge Test to unlock Puzzle 10.</span>
           </span>
-          <span class="puzzle-state">COMPLETE 04</span>
+          <span class="puzzle-state">COMPLETE 09</span>
         </div>
       </section>
     </main>

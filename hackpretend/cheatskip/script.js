@@ -10,5 +10,5 @@ if (localStorage.getItem(MP1_ACTIVE_KEY) === "1") {
     '<p class="code">MP1 ROUTE OVERRIDE</p><h1>Recovery unlocked early</h1><p>Resolving emergency recovery endpoint...</p>';
   window.setTimeout(() => {
     window.location.replace("/hackpretend/recovery/blocked");
-  }, 700);
+  }, 1000);
 }

@@ -15,9 +15,13 @@ body.mp1-p02.spider-mode .walk-grid { z-index:6; }
 .mp1-stable button,.mp1-hybrid button,.mp1-verification button { padding:11px 16px; border:1px solid #2ec4b6; color:#e6f6ff; background:#0c3038; font:700 .85rem "Courier New"; cursor:pointer; }
 .mp1-hybrid { --shake-speed:.8s; position:relative; width:min(1000px,100%); display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .mp1-hybrid>div { position:relative!important; inset:auto!important; z-index:1; width:auto!important; min-width:0; min-height:260px; padding:20px; overflow:hidden; }
-.mp1-hybrid>.recovery-fragment { display:grid!important; opacity:1!important; animation:none!important; }
+.mp1-hybrid>.recovery-fragment { display:block!important; place-content:unset!important; opacity:1!important; animation:none!important; }
 .mp1-hybrid .world-fragment h1,.mp1-hybrid .recovery-fragment h1,.mp1-hybrid .database-fragment h1 { font-size:clamp(1.25rem,2.2vw,2rem); overflow-wrap:anywhere; }
 .world-fragment { color:#ff9f1c; transform:skewY(-2deg); }.database-fragment { color:#2ec4b6; transform:translateY(15px); }.recovery-fragment { color:#68f3a4; transform:skewY(2deg); }
+.recovery-fragment .recovery-badge { max-width:100%; font-size:.64rem; line-height:1.35; }
+.recovery-fragment .recovery-kicker { margin:22px 0 8px; }
+.recovery-fragment .recovery-status { width:100%; margin-top:20px; }
+.recovery-fragment .recovery-status div { grid-template-columns:minmax(0,1fr) auto; gap:12px; }
 .hybrid-alert { grid-column:1/-1; color:#ff6675; text-align:center; }.mp1-hybrid.shaking { animation:hybrid-shake var(--shake-speed) steps(2) infinite; }
 .hybrid-exit { position:fixed; right:7vw; bottom:7vh; z-index:8; border-color:#ff263d!important; background:#74101e!important; animation:exit-flash .35s infinite alternate; }
 .mp1-verification { position:fixed; inset:0; z-index:5; display:grid; place-items:center; overflow:hidden; background:rgba(16,7,10,.86); }

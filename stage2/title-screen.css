@@ -1,0 +1,159 @@
+.stage-two-title-screen {
+  --launch-accent: #7ef29a;
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 24px;
+  color: #e6f6ff;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(126, 242, 154, .14), transparent 27%),
+    #030b13;
+  font-family: "Courier New", Courier, monospace;
+  opacity: 1;
+  animation: stage-two-title-enter .7s ease forwards;
+}
+
+body.stage-two-title-open { overflow: hidden; }
+body.stage-two-title-pending > :not(script) { visibility: hidden; }
+
+.stage-two-title-screen::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background-image:
+    linear-gradient(rgba(126, 242, 154, .08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 242, 154, .08) 1px, transparent 1px);
+  background-size: 38px 38px;
+  transform: perspective(600px) rotateX(58deg) translateY(16%);
+  mask-image: linear-gradient(transparent 12%, black 55%, transparent 92%);
+  animation: stage-two-title-grid 8s linear infinite;
+}
+
+.stage-two-title-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.025) 4px 5px);
+}
+
+.stage-two-title-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  width: min(760px, 100%);
+  text-align: center;
+}
+
+.stage-two-title-logo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 124px;
+  height: 142px;
+  margin-bottom: 30px;
+  color: var(--launch-accent);
+  background: rgba(5, 21, 18, .88);
+  clip-path: polygon(50% 0, 94% 22%, 94% 72%, 50% 100%, 6% 72%, 6% 22%);
+  filter: drop-shadow(0 0 20px rgba(126, 242, 154, .28));
+}
+
+.stage-two-title-logo::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2px solid currentColor;
+  clip-path: inherit;
+}
+
+.stage-two-title-logo::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: currentColor;
+  opacity: .7;
+  transform: rotate(31deg) scaleY(.72);
+  box-shadow: 12px 9px 0 rgba(3, 11, 19, .95), -9px 26px 0 rgba(3, 11, 19, .95);
+}
+
+.stage-two-title-logo span {
+  position: relative;
+  z-index: 1;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-shadow: 0 0 16px currentColor;
+}
+
+.stage-two-title-eyebrow { margin: 0 0 12px; color: var(--launch-accent); font-size: .7rem; letter-spacing: .24em; }
+.stage-two-title-content h1 { margin: 0; font-size: clamp(2.8rem, 10vw, 6.8rem); line-height: .9; letter-spacing: -.05em; text-transform: uppercase; }
+.stage-two-title-status { margin: 22px 0 0; color: #8eb7c8; font-size: .72rem; letter-spacing: .14em; }
+.stage-two-title-status::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; background: var(--launch-accent); box-shadow: 0 0 10px var(--launch-accent); }
+
+.stage-two-title-launch {
+  margin-top: 34px;
+  padding: 14px 24px;
+  border: 1px solid var(--launch-accent);
+  border-radius: 4px;
+  color: #03100a;
+  background: var(--launch-accent);
+  box-shadow: 0 0 26px rgba(126, 242, 154, .22);
+  font: 700 .78rem/1 "Courier New", Courier, monospace;
+  letter-spacing: .14em;
+  cursor: pointer;
+}
+.stage-two-title-launch:hover, .stage-two-title-launch:focus-visible { filter: brightness(1.15); outline: 2px solid #e6f6ff; outline-offset: 4px; }
+.stage-two-title-screen.is-launching { animation: stage-two-title-exit .75s cubic-bezier(.7, 0, 1, .5) forwards; }
+.stage-two-title-screen.is-launching::before { animation: stage-two-grid-collapse .75s cubic-bezier(.7, 0, 1, .5) forwards; }
+.stage-two-title-screen.is-launching::after { animation: stage-two-launch-scan .75s ease-in forwards; }
+.stage-two-title-screen.is-launching .stage-two-title-content { animation: stage-two-content-launch .75s steps(2, end) forwards; }
+.stage-two-title-screen.is-launching .stage-two-title-logo { animation: stage-two-logo-launch .75s ease-in forwards; }
+.stage-two-title-screen.is-launching h1 { animation: stage-two-title-glitch .75s steps(2, end) forwards; }
+
+@keyframes stage-two-title-enter { from { filter: brightness(2); } to { filter: brightness(1); } }
+@keyframes stage-two-title-exit {
+  0%, 70% { opacity: 1; }
+  82% { opacity: 1; filter: brightness(3); }
+  100% { opacity: 0; transform: scale(1.04); filter: brightness(5); }
+}
+@keyframes stage-two-logo-launch {
+  0% { transform: scale(1); }
+  45% { transform: scale(.88); filter: drop-shadow(0 0 35px var(--launch-accent)); }
+  100% { transform: scale(2.1); opacity: 0; filter: blur(7px); }
+}
+@keyframes stage-two-content-launch {
+  0%, 18% { transform: translate(0); }
+  22% { transform: translate(-7px, 2px); }
+  28% { transform: translate(8px, -2px); }
+  34%, 100% { transform: translate(0); }
+}
+@keyframes stage-two-title-glitch {
+  0%, 18%, 34%, 100% { text-shadow: none; }
+  22% { text-shadow: -7px 0 #51d1ff, 7px 0 #ff6675; }
+  28% { text-shadow: 5px 0 #51d1ff, -5px 0 #ff6675; }
+}
+@keyframes stage-two-grid-collapse {
+  0% { opacity: 1; transform: perspective(600px) rotateX(58deg) translateY(16%) scale(1); }
+  70% { opacity: 1; transform: perspective(600px) rotateX(58deg) translateY(16%) scale(.2); }
+  100% { opacity: 0; transform: perspective(600px) rotateX(58deg) translateY(16%) scale(.02); }
+}
+@keyframes stage-two-launch-scan {
+  0%, 58% { opacity: .2; background: transparent; }
+  62% { opacity: 1; background: linear-gradient(90deg, transparent 0 46%, rgba(230,246,255,.95) 50%, transparent 54%); transform: translateX(-100%); }
+  88% { opacity: 1; background: linear-gradient(90deg, transparent 0 46%, rgba(230,246,255,.95) 50%, transparent 54%); transform: translateX(100%); }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+@keyframes stage-two-title-grid { to { background-position: 0 76px, 76px 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-two-title-screen,
+  .stage-two-title-screen::before,
+  .stage-two-title-screen.is-launching,
+  .stage-two-title-screen.is-launching .stage-two-title-logo { animation-duration: .01ms; animation-iteration-count: 1; }
+}

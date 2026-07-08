@@ -27,7 +27,7 @@ if (window.HACKULEAN_MP1_P02_VARIANT) {
       <section id="mp1-hybrid" class="mp1-hybrid mp1-hidden">
         <div class="panel world-fragment"><h1>HACK PRETEND UNIVERSE PRIVATE ACCESS TUNNEL</h1><p class="sub">CONNECTION: CROSSWIRED</p><section class="admin-shell"><h2 class="admin-title">ADMIN PRETEND OPTIONS UNLOCKED</h2></section></div>
         <div class="panel management-screen database-fragment"><h1 class="management-title">DATABASE MANAGEMENT</h1><div class="management-status-box"><h2 class="management-label">STATUS</h2><p class="management-status-value">Connected · Elevated Access · Monitoring Unknown</p></div><button class="command-button" disabled>grant root --node all</button></div>
-        <div class="recovery-screen recovery-fragment"><div class="recovery-badge"><span></span>EMERGENCY ENVIRONMENT</div><p class="recovery-kicker">HACKULEAN FILE SYSTEM // NODE 03</p><h1>Recovery Mode</h1><dl class="recovery-status"><div><dt>NETWORK</dt><dd>CORRUPTED</dd></div></dl></div>
+        <div class="panel recovery-screen recovery-fragment"><div class="recovery-badge"><span></span>EMERGENCY ENVIRONMENT</div><p class="recovery-kicker">HACKULEAN FILE SYSTEM // NODE 03</p><h1>Recovery Mode</h1><dl class="recovery-status"><div><dt>NETWORK</dt><dd>CORRUPTED</dd></div></dl></div>
         <p id="hybrid-alert" class="hybrid-alert">INTERFACE COLLISION DETECTED</p>
         <button id="hybrid-exit" class="hybrid-exit mp1-hidden" type="button">EXIT RECOVERY</button>
       </section>
