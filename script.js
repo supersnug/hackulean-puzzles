@@ -47,17 +47,25 @@ function applyPrerequisiteLocks(map) {
       .filter(Boolean);
     const requirementsMet = requirements.every((requirement) => Boolean(map[requirement]));
     const state = card.querySelector(".puzzle-state");
+    const title = card.querySelector(".puzzle-title");
     const description = card.querySelector(".puzzle-description");
 
     if (!requirementsMet) {
       card.classList.add("puzzle-card-locked");
       card.setAttribute("aria-disabled", "true");
       if (card.matches("a")) card.setAttribute("tabindex", "-1");
+      if (title && card.dataset.lockedTitle) title.textContent = card.dataset.lockedTitle;
+      if (description && card.dataset.lockedDescription) {
+        description.textContent = card.dataset.lockedDescription;
+      } else if (requirements.length === 1 && requirements[0] === "04-metapuzzle-1" && description) {
+        const puzzleNumber = card.querySelector(".icon-core")?.textContent.trim();
+        if (puzzleNumber) description.textContent = `Complete Metapuzzle 1 to unlock Puzzle ${puzzleNumber}.`;
+      }
       return;
     }
 
     if (card.dataset.comingSoon === "true") {
-      if (state) state.textContent = "COMING SOON";
+      if (state && !card.classList.contains("puzzle-card-complete")) state.textContent = "COMING SOON";
       if (description) description.textContent = "Prerequisite complete. This puzzle has not been deployed yet.";
       return;
     }
@@ -66,9 +74,49 @@ function applyPrerequisiteLocks(map) {
     card.classList.add("puzzle-card-active");
     card.removeAttribute("aria-disabled");
     card.removeAttribute("tabindex");
+    if (title && card.dataset.unlockedTitle) title.textContent = card.dataset.unlockedTitle;
     if (state && !card.classList.contains("puzzle-card-complete")) state.textContent = "ENTER";
-    if (description) description.textContent = "The first three missions hide a larger secret. Cross the checkpoint to begin Metapuzzle 1.";
+    if (description) {
+      description.textContent = card.dataset.unlockedDescription
+        || "The first three missions hide a larger secret. Cross the checkpoint to begin Metapuzzle 1.";
+    }
   });
+}
+
+function applyCurrentStage(map) {
+  const widget = document.querySelector(".stage-widget");
+  const icon = document.getElementById("stage-widget-icon");
+  const stage = document.getElementById("current-stage");
+  const status = document.getElementById("stage-widget-status");
+  const isStageTwo = Boolean(map["04-metapuzzle-1"]);
+  let isMetapuzzleActive = false;
+
+  document.body.classList.toggle("stage-two-active", isStageTwo);
+
+  try {
+    isMetapuzzleActive = localStorage.getItem("hackulean_metapuzzle_1_active") === "1";
+  } catch (_error) {
+    // Fall back to the resolved stage when storage is unavailable.
+  }
+
+  if (isMetapuzzleActive) {
+    icon.textContent = "?";
+    status.textContent = "SIGNAL UNSTABLE";
+    widget.classList.add("stage-unstable");
+
+    const glitchStageNumber = () => {
+      stage.textContent = `STAGE ${Math.floor(Math.random() * 9) + 1}`;
+    };
+    glitchStageNumber();
+    const glitchTimer = window.setInterval(glitchStageNumber, 200);
+    window.addEventListener("pagehide", () => window.clearInterval(glitchTimer), { once: true });
+    return;
+  }
+
+  icon.textContent = isStageTwo ? "2" : "1";
+  stage.textContent = isStageTwo ? "STAGE 2" : "STAGE 1";
+  status.textContent = isStageTwo ? "NETWORK EXPANDED" : "INITIAL NETWORK";
+  widget.classList.toggle("stage-two", isStageTwo);
 }
 
 function preventLockedNavigation(event) {
@@ -78,10 +126,10 @@ function preventLockedNavigation(event) {
 
 function processCompletionSignal() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get("signal") !== COMPLETION_SIGNAL) return;
+  if (params.get("signal") !== COMPLETION_SIGNAL) return "";
 
   const puzzleId = params.get("puzzle");
-  if (!puzzleId) return;
+  if (!puzzleId) return "";
 
   const completionMap = readCompletionMap();
   completionMap[puzzleId] = true;
@@ -92,12 +140,85 @@ function processCompletionSignal() {
   const query = params.toString();
   const cleanUrl = `${window.location.pathname}${query ? `?${query}` : ""}`;
   window.history.replaceState({}, "", cleanUrl);
+  return puzzleId;
 }
 
-processCompletionSignal();
+function showStageTwoReveal() {
+  const reveal = document.getElementById("stage-two-reveal");
+  const continueButton = document.getElementById("stage-two-continue");
+  reveal.hidden = false;
+  document.body.classList.add("stage-two-boot");
+
+  continueButton.addEventListener("click", () => {
+    document.body.classList.add("stage-two-closing");
+    window.setTimeout(() => {
+      reveal.hidden = true;
+      document.body.classList.remove("stage-two-boot", "stage-two-closing");
+      document.body.classList.add("stage-two-arrived");
+    }, 500);
+  }, { once: true });
+}
+
+function initializeAmbientStageGrid() {
+  const grid = document.getElementById("ambient-stage-grid");
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const cellSize = 23;
+  let cells = [];
+  let patternTimer = 0;
+  let resizeTimer = 0;
+
+  const buildGrid = () => {
+    const columns = Math.ceil(window.innerWidth / cellSize) + 1;
+    const rows = Math.ceil(window.innerHeight / cellSize) + 1;
+    grid.style.setProperty("--ambient-columns", columns);
+    grid.style.setProperty("--ambient-rows", rows);
+
+    const fragment = document.createDocumentFragment();
+    for (let index = 0; index < columns * rows; index += 1) {
+      const cell = document.createElement("span");
+      cell.className = "ambient-stage-cell";
+      fragment.appendChild(cell);
+    }
+    grid.replaceChildren(fragment);
+    cells = Array.from(grid.children);
+  };
+
+  const lightCells = () => {
+    if (!cells.length) return;
+    const count = Math.min(cells.length, 12 + Math.floor(Math.random() * 17));
+    const indexes = new Set();
+    while (indexes.size < count) indexes.add(Math.floor(Math.random() * cells.length));
+
+    indexes.forEach((index) => {
+      const cell = cells[index];
+      cell.classList.remove("active");
+      cell.style.setProperty("--cell-duration", `${1100 + Math.random() * 1200}ms`);
+      void cell.offsetWidth;
+      cell.classList.add("active");
+    });
+    patternTimer = window.setTimeout(lightCells, 650 + Math.random() * 850);
+  };
+
+  buildGrid();
+  lightCells();
+  window.addEventListener("resize", () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(buildGrid, 120);
+  });
+  window.addEventListener("pagehide", () => {
+    window.clearTimeout(patternTimer);
+    window.clearTimeout(resizeTimer);
+  }, { once: true });
+}
+
+const completedPuzzleId = processCompletionSignal();
 const completionMap = readCompletionMap();
 applyCompletionStatus(completionMap);
 applyPrerequisiteLocks(completionMap);
+applyCurrentStage(completionMap);
+if (completionMap["04-metapuzzle-1"]) initializeAmbientStageGrid();
+if (completedPuzzleId === "04-metapuzzle-1") showStageTwoReveal();
 document.addEventListener("click", preventLockedNavigation);
 
 const puzzleCards = document.querySelectorAll(".puzzle-card");
