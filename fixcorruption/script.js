@@ -11,6 +11,7 @@
   const loadingScreen = document.getElementById("loading-screen");
   const loadingLines = document.getElementById("loading-lines");
   const viewerIntro = document.getElementById("viewer-intro");
+  const introStatus = document.getElementById("intro-status");
   const databaseViewer = document.getElementById("database-viewer");
   const titleWasBlocked = Boolean(window.HackuleanStage2Title?.isBlocked());
   const collectionButtons = Array.from(document.querySelectorAll(".rail-button"));
@@ -658,6 +659,8 @@
     rebootScreen.classList.add("hidden");
     document.body.classList.remove("is-rebooting");
     updatePendingAfterReboot = updateAvailable;
+    introStatus.classList.toggle("update-available", updateAvailable);
+    introStatus.querySelector("strong").textContent = updateAvailable ? "UPDATE AVAILABLE" : "CORRUPTED DATA FOUND";
     startupIsFromReboot = true;
     await runLoadingSequence();
     rebootButton.disabled = false;

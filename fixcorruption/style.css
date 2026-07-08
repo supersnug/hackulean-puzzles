@@ -144,6 +144,9 @@ h1 { margin: 0; font-size: clamp(2.4rem, 8vw, 5rem); line-height: 1; letter-spac
 h1 span { color: var(--green); }
 .status { margin: 28px 0 0; color: var(--warning); font-size: .72rem; letter-spacing: .12em; }
 .status span { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 12px var(--warning); }
+.status strong { font: inherit; }
+.status.update-available { color: #7ef29a; }
+.status.update-available span { background: #7ef29a; box-shadow: 0 0 12px #7ef29a; }
 .message { max-width: 32rem; margin: 20px auto 28px; color: var(--muted); line-height: 1.7; }
 .run-button { min-width: 150px; padding: 12px 18px; border: 1px solid var(--accent); border-radius: 7px; color: var(--text); background: rgba(46,196,182,.08); font: 700 .76rem/1 "Courier New", Courier, monospace; letter-spacing: .08em; cursor: pointer; }
 .run-button:hover, .run-button:focus-visible { outline: none; filter: brightness(1.25); box-shadow: 0 0 0 2px rgba(255,255,255,.08); }
