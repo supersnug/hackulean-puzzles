@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07121f" />
+    <title>Manage Database - HacKulean Puzzles</title>
+    <link rel="stylesheet" href="../stage2/title-screen.css" />
+    <link rel="stylesheet" href="../fixcorruption/style.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body
+    class="stage-two-title-pending managedatabase-loading"
+    data-stage-two-number="06"
+    data-stage-two-title="Manage Database"
+    data-stage-two-logo="MD"
+    data-stage-two-status="DATABASE INCIDENT COMMAND"
+    data-stage-two-title-blocker-key="hackulean_managedatabase_manager_open"
+  >
+    <script>
+      try {
+        const managerIsOpen = localStorage.getItem("hackulean_managedatabase_manager_open") === "1";
+        const forceTitle = new URLSearchParams(location.search).get("title") === "1";
+        if (!managerIsOpen && !forceTitle) {
+          document.body.classList.remove("stage-two-title-pending");
+          document.body.dataset.stageTwoNumber = "";
+        }
+      } catch (_error) {
+        document.body.classList.remove("stage-two-title-pending");
+        document.body.dataset.stageTwoNumber = "";
+      }
+    </script>
+    <section id="loading-screen" class="loading-screen" aria-label="Loading puzzle" aria-live="polite">
+      <div id="loading-lines" class="loading-lines"></div>
+    </section>
+    <div class="grid" aria-hidden="true"></div>
+    <main id="viewer-intro" class="placeholder">
+      <div class="puzzle-number" aria-hidden="true">v2.0</div>
+      <p class="eyebrow">HACKULEAN FILES</p>
+      <h1>Database <span>Viewer</span></h1>
+      <p id="intro-status" class="status database-ready"><span aria-hidden="true"></span><strong>DATABASE READY</strong></p>
+      <p class="message">Open the updated Database Viewer to review active collections, memory, and system health.</p>
+      <button id="start-button" class="run-button" type="button">Start</button>
+    </main>
+
+    <main id="database-manager" class="database-viewer managedatabase-viewer hidden" aria-labelledby="viewer-title">
+      <header class="viewer-header">
+        <div class="viewer-brand">
+          <span class="viewer-mark" aria-hidden="true">DV</span>
+          <div><p>HACKULEAN ARCHIVE SYSTEM</p><h1 id="viewer-title">Database Viewer</h1></div>
+        </div>
+        <div class="viewer-header-actions">
+          <div id="viewer-health" class="viewer-health health-clear"><span aria-hidden="true"></span><strong id="anomaly-count">0</strong><small id="anomaly-breakdown">0 critical · 0 unstable</small></div>
+          <button id="reboot-button" class="reboot-button" type="button">Reboot System</button>
+        </div>
+      </header>
+
+      <section id="event-banner" class="event-banner hidden" aria-live="polite">
+        <div>
+          <p id="event-kicker">RANDOM EVENT</p>
+          <h2 id="event-title">Event title</h2>
+          <p id="event-description">Event description</p>
+        </div>
+        <div class="event-meta">
+          <span id="event-count">0 EVENTS COMPLETE</span>
+          <strong id="event-timer">--:--</strong>
+        </div>
+      </section>
+
+      <div class="manager-tabs" role="tablist" aria-label="Database manager tabs">
+        <button class="manager-tab active" type="button" data-panel="collections-panel">Collections</button>
+        <button class="manager-tab" type="button" data-panel="memory-panel">Memory Viewer</button>
+        <button class="manager-tab" type="button" data-panel="integrity-panel">System Integrity</button>
+      </div>
+
+      <section id="collections-panel" class="manager-panel active">
+        <div class="viewer-workspace">
+          <nav class="viewer-rail" aria-label="Database collections">
+            <p class="rail-label">COLLECTIONS</p>
+            <button class="rail-button active" type="button" data-collection="NORMAL"><span>01</span>Normal</button>
+            <button class="rail-button" type="button" data-collection="DAMAGED"><span>02</span>Damaged</button>
+            <button class="rail-button" type="button" data-collection="QUARANTINE"><span>03</span>Quarantine</button>
+            <button class="rail-button" type="button" data-collection="UNSORTED"><span>04</span>Unsorted</button>
+            <div class="rail-meter"><span>INDEX HEALTH</span><strong>100%</strong><i><b></b></i></div>
+          </nav>
+
+          <section class="record-browser" aria-label="Database records">
+            <div class="browser-toolbar">
+              <div><span class="crumb-muted">DATABASE /</span> <span id="active-collection">NORMAL</span></div>
+              <div class="browser-actions">
+                <button id="quarantine-virus-button" type="button" hidden>Quarantine Viruses</button>
+                <button id="confirm-quarantine-button" type="button" hidden>Confirm</button>
+                <button id="clear-quarantine-button" type="button" hidden>Clear Quarantine</button>
+                <button id="recover-data-button" type="button" hidden>Recover Data</button>
+                <button id="repair-data-button" type="button" hidden>Attempt Repair</button>
+                <button id="sort-data-button" type="button" hidden>Sort Data</button>
+                <button id="filter-button" type="button" disabled>FILTER: ALL</button>
+              </div>
+            </div>
+            <div class="record-heading"><span>RECORD</span><span>TYPE</span><span>INTEGRITY</span><span>MODIFIED</span></div>
+            <div id="record-list" class="record-list"></div>
+            <div class="browser-footer"><span id="record-count">13 OF 13 RECORDS</span><span id="session-status">READ-WRITE SESSION</span></div>
+          </section>
+
+          <aside class="record-inspector">
+            <p class="inspector-label">SELECTED RECORD</p>
+            <div class="record-glyph" aria-hidden="true"><span id="inspector-glyph">NM</span></div>
+            <h2 id="inspector-record">NM-00000</h2>
+            <p id="inspector-path" class="record-path">/normal/archive/NM-00000.hdb</p>
+            <dl>
+              <div><dt>Integrity</dt><dd id="inspector-integrity" class="good">100%</dd></div>
+              <div><dt>Fragments</dt><dd id="inspector-fragments">01</dd></div>
+              <div><dt>Owner</dt><dd id="inspector-owner">SYSTEM</dd></div>
+              <div><dt>Lock</dt><dd id="inspector-lock">OPEN</dd></div>
+            </dl>
+            <div id="inspector-actions" class="inspector-actions">
+              <button id="inspect-fragments-button" type="button">Inspect fragments</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="memory-panel" class="manager-panel memory-viewer-panel" aria-label="Memory viewer">
+        <div class="memory-toolbar"><span>VOLATILE MEMORY MAP</span><button id="freeze-frame-button" type="button">Freeze Frame</button></div>
+        <div id="memory-grid" class="memory-grid"></div>
+      </section>
+
+      <section id="integrity-panel" class="manager-panel integrity-panel" aria-label="System integrity">
+        <div class="integrity-list" id="integrity-list"></div>
+      </section>
+    </main>
+
+    <dialog id="fragment-dialog" class="fragment-dialog" aria-labelledby="fragment-dialog-title">
+      <div class="fragment-dialog-header">
+        <div><p>LIVE FRAGMENT MAP</p><h2 id="fragment-dialog-title">Record fragments</h2></div>
+        <button id="fragment-dialog-close" type="button" aria-label="Close fragment map">×</button>
+      </div>
+      <p id="fragment-dialog-summary" class="fragment-dialog-summary"></p>
+      <div id="fragment-grid" class="fragment-grid"></div>
+      <footer><span>VALUES RECONSTRUCTED FROM NORMALIZED SECTORS</span><span>READ WRITE</span></footer>
+    </dialog>
+
+    <dialog id="integrity-dialog" class="fragment-dialog integrity-dialog" aria-labelledby="integrity-dialog-title">
+      <div class="fragment-dialog-header">
+        <div><p>SYSTEM INTEGRITY DETAILS</p><h2 id="integrity-dialog-title">Core Systems</h2></div>
+        <button id="integrity-dialog-close" type="button" aria-label="Close system details">×</button>
+      </div>
+      <div class="integrity-detail-body">
+        <p id="integrity-dialog-summary"></p>
+        <dl>
+          <div><dt>Status</dt><dd id="integrity-dialog-status">OK</dd></div>
+          <div><dt>Role</dt><dd id="integrity-dialog-role">--</dd></div>
+          <div><dt>Uptime</dt><dd id="integrity-dialog-uptime">--</dd></div>
+          <div><dt>Last check</dt><dd id="integrity-dialog-check">--</dd></div>
+        </dl>
+      </div>
+      <footer><span>DIAGNOSTICS READ ONLY</span><span>ALL SYSTEMS NOMINAL</span></footer>
+    </dialog>
+
+    <section id="update-continuation" class="update-screen hidden" aria-labelledby="update-title">
+      <div class="update-panel">
+        <p>SYSTEM PACKAGE INSTALLER</p>
+        <h2 id="update-title">Updating</h2>
+        <p>Installing Database Viewer update...</p>
+        <div class="update-progress"><span id="update-progress-fill"></span></div>
+        <output id="update-progress-text">0%</output>
+        <button id="update-reboot-button" class="hidden" type="button">Reboot</button>
+      </div>
+    </section>
+
+    <section id="part-two-complete" class="update-screen hidden" aria-labelledby="part-two-complete-title">
+      <div class="part-one-complete">
+        <p>PUZZLE 06 // STAGE 2 PART 02</p>
+        <h2 id="part-two-complete-title">Part 02 Complete</h2>
+        <p>You managed repeat database incidents, quarantined viruses, repaired damaged data, stabilized memory corruption, and manually sorted new records.</p>
+        <p class="next-part">The database is stable for now, but the incident system is still evolving. Return to the puzzle root to continue Stage 2.</p>
+        <a id="complete-puzzle-button" href="/?signal=puzzle_completed&amp;puzzle=06-manage-database">Back to Puzzle Root</a>
+      </div>
+    </section>
+
+    <section id="reboot-screen" class="reboot-screen hidden" aria-label="System reboot log">
+      <pre id="reboot-log"></pre><span class="reboot-cursor" aria-hidden="true">_</span>
+    </section>
+    <section id="event-terminal" class="remount-terminal hidden" aria-label="Event terminal">
+      <header><span>EVENT CONSOLE // LOCAL TTY</span><span id="event-terminal-state">RUNNING</span></header>
+      <div id="event-terminal-output" class="remount-terminal-output" role="log"></div>
+      <footer>
+        <div class="remount-progress"><span id="event-progress-fill"></span></div>
+        <output id="event-progress-text">0%</output>
+      </footer>
+    </section>
+    <section id="damage-game" class="damage-game hidden" aria-label="Data recovery minigame">
+      <canvas id="damage-canvas"></canvas>
+      <header class="damage-hud">
+        <div><span>RECOVERY TIME</span><strong id="damage-timer">02:00</strong></div>
+        <div><span>HEARTS</span><strong id="damage-hearts">♥♥♥♥♥</strong></div>
+        <div><span>CHECKPOINTS</span><strong id="damage-score">0 / 5</strong></div>
+      </header>
+      <p id="damage-message" class="damage-message hidden"></p>
+      <p class="damage-help">MOVE CURSOR // CLICK GREEN PLUS // AVOID X</p>
+    </section>
+    <section id="sorter-game" class="damage-game sorter-game hidden" aria-label="Manual sorting runner">
+      <canvas id="sorter-canvas"></canvas>
+      <header class="damage-hud">
+        <div><span>SORT TIME</span><strong id="sorter-timer">01:00</strong></div>
+        <div><span>DATA CHECKPOINTS</span><strong id="sorter-score">0 / 3</strong></div>
+      </header>
+      <p id="sorter-message" class="damage-message hidden"></p>
+      <p class="damage-help">SPACE / CLICK / TAP TO JUMP // BUTTONS TOGGLE DOORS</p>
+    </section>
+
+    <div class="scanline-flashes" aria-hidden="true"></div>
+    <script src="../stage2/title-screen.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
