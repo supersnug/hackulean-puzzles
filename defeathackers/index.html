@@ -4,18 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#07121f" />
-    <title>Manage Database - HacKulean Puzzles</title>
+    <title>Defeat Hackers - HacKulean Puzzles</title>
     <link rel="stylesheet" href="../stage2/title-screen.css" />
     <link rel="stylesheet" href="../fixcorruption/style.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body
-    class="stage-two-title-pending managedatabase-loading"
-    data-stage-two-number="06"
-    data-stage-two-title="Manage Database"
-    data-stage-two-logo="MD"
-    data-stage-two-status="DATABASE INCIDENT COMMAND"
-    data-stage-two-title-blocker-key="hackulean_managedatabase_manager_open"
+    class="stage-two-title-pending defeathackers-loading"
+    data-stage-two-number="07"
+    data-stage-two-title="Defeat Hackers"
+    data-stage-two-logo="DH"
+    data-stage-two-status="HACKER RESPONSE NODE"
+    data-stage-two-title-blocker-key="hackulean_defeathackers_title_blocked"
   >
     <section id="loading-screen" class="loading-screen" aria-label="Loading puzzle" aria-live="polite">
       <div id="loading-lines" class="loading-lines"></div>
@@ -30,7 +30,7 @@
       <button id="start-button" class="run-button" type="button">Start</button>
     </main>
 
-    <main id="database-manager" class="database-viewer managedatabase-viewer hidden" aria-labelledby="viewer-title">
+    <main id="database-manager" class="database-viewer defeathackers-viewer hidden" aria-labelledby="viewer-title">
       <header class="viewer-header">
         <div class="viewer-brand">
           <span class="viewer-mark" aria-hidden="true">DV</span>
@@ -157,11 +157,11 @@
 
     <section id="part-two-complete" class="update-screen hidden" aria-labelledby="part-two-complete-title">
       <div class="part-one-complete">
-        <p>PUZZLE 06 // STAGE 2 PART 02</p>
-        <h2 id="part-two-complete-title">Part 02 Complete</h2>
-        <p>You managed repeat database incidents, quarantined viruses, repaired damaged data, stabilized memory corruption, and manually sorted new records.</p>
-        <p class="next-part">The database is stable for now, but the incident system is still evolving. Return to the puzzle root to continue Stage 2.</p>
-        <a id="complete-puzzle-button" href="/?signal=puzzle_completed&amp;puzzle=06-manage-database">Back to Puzzle Root</a>
+        <p>PUZZLE 07 // STAGE 2 PART 03</p>
+        <h2 id="part-two-complete-title">Part 03 Complete</h2>
+        <p>You defeated the active hacker intrusion and restored command authority to the database viewer.</p>
+        <p class="next-part">Return to the puzzle root to continue Stage 2.</p>
+        <a id="complete-puzzle-button" href="/?signal=puzzle_completed&amp;puzzle=07-defeat-hackers">Back to Puzzle Root</a>
       </div>
     </section>
 
@@ -196,7 +196,80 @@
       <p class="damage-help">SPACE / CLICK / TAP TO JUMP // BUTTONS TOGGLE DOORS</p>
     </section>
 
+    <section id="hacker-alert" class="hacker-alert hidden" aria-live="assertive">
+      <div>
+        <p>HACKER ALERT</p>
+        <h2>Unauthorized operator detected</h2>
+        <span>Database records are being overwritten.</span>
+      </div>
+    </section>
+
+    <section id="critical-exception" class="critical-exception hidden" aria-live="assertive">
+      <div>
+        <p>KERNEL PANIC // DATABASE VIEWER</p>
+        <h2>Critical Exception</h2>
+        <span>Virus overwrite cascade reached protected memory. Booting recovery interface...</span>
+      </div>
+    </section>
+
+    <section id="recovery-screen" class="recovery-screen hidden" aria-labelledby="recovery-title">
+      <div class="recovery-panel">
+        <p>DATABASE VIEWER // RECOVERY MODE</p>
+        <h1 id="recovery-title">Recovery Screen</h1>
+        <span id="recovery-status">Choose a recovery option. Defensive systems are unstable.</span>
+        <div id="recovery-progress" class="recovery-progress hidden">
+          <span></span>
+          <output>0%</output>
+        </div>
+        <div id="recovery-buttons" class="recovery-buttons">
+          <button id="restore-database-button" type="button" data-recovery-button data-recovery-action="restore">
+            <span>Restore Database</span>
+            <i><b></b></i>
+          </button>
+          <button id="rebuild-viewer-button" type="button" data-recovery-button data-recovery-action="rebuild">
+            <span>Rebuild Viewer</span>
+            <i><b></b></i>
+          </button>
+          <button id="emergency-shell-button" type="button" data-recovery-button data-recovery-action="shell">
+            <span>Emergency Shell</span>
+            <i><b></b></i>
+          </button>
+        </div>
+        <div id="recovery-shell" class="recovery-shell hidden">
+          <div id="recovery-shell-output" class="recovery-shell-output" role="log"></div>
+          <label>
+            <span>&gt;</span>
+            <input id="recovery-shell-input" type="text" spellcheck="false" autocomplete="off" />
+          </label>
+        </div>
+        <div id="spider-field" class="spider-field" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section id="dev-terminal" class="dev-terminal hidden" aria-label="Developer terminal">
+      <header><span>DEV TERMINAL // DATABASE VIEWER</span><button id="dev-terminal-close" type="button">×</button></header>
+      <div id="dev-terminal-output" class="dev-terminal-output" role="log"></div>
+      <label>
+        <span>&gt;</span>
+        <input id="dev-terminal-input" type="text" spellcheck="false" autocomplete="off" />
+      </label>
+    </section>
+
     <div class="scanline-flashes" aria-hidden="true"></div>
+    <script>
+      try {
+        const titleShouldBeBlocked =
+          localStorage.getItem("hackulean_defeathackers_recovery_started") === "1"
+          || localStorage.getItem("hackulean_defeathackers_hackers_defeated") === "1";
+        if (titleShouldBeBlocked) {
+          localStorage.setItem("hackulean_defeathackers_title_blocked", "1");
+        } else {
+          localStorage.removeItem("hackulean_defeathackers_title_blocked");
+        }
+      } catch (_error) {
+        // Fall through to the normal title screen when storage is unavailable.
+      }
+    </script>
     <script src="../stage2/title-screen.js"></script>
     <script src="script.js"></script>
   </body>
