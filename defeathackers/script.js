@@ -2,9 +2,13 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 
-  const TITLE_BLOCKER_KEY = "hackulean_managedatabase_manager_open";
-  const RECORD_STATE_KEY = "hackulean_managedatabase_record_collections";
-  const FRAGMENT_SEED_KEY = "hackulean_managedatabase_fragment_seed";
+  const RECOVERY_KEY = "hackulean_defeathackers_recovery_started";
+  const SPIDERS_DEFEATED_KEY = "hackulean_defeathackers_spiders_defeated";
+  const HACKERS_DEFEATED_KEY = "hackulean_defeathackers_hackers_defeated";
+  const DEV_TERMINAL_KEY = "hackulean_defeathackers_dev_terminal";
+  const DEV_COMMANDS_READY_KEY = "hackulean_defeathackers_dev_commands_ready";
+  const RECORD_STATE_KEY = "hackulean_defeathackers_record_collections";
+  const FRAGMENT_SEED_KEY = "hackulean_defeathackers_fragment_seed";
 
   const loadingScreen = document.getElementById("loading-screen");
   const loadingLines = document.getElementById("loading-lines");
@@ -74,6 +78,24 @@
   const sorterMessage = document.getElementById("sorter-message");
   const partTwoComplete = document.getElementById("part-two-complete");
   const completePuzzleButton = document.getElementById("complete-puzzle-button");
+  const hackerAlert = document.getElementById("hacker-alert");
+  const criticalException = document.getElementById("critical-exception");
+  const recoveryScreen = document.getElementById("recovery-screen");
+  const recoveryStatus = document.getElementById("recovery-status");
+  const recoveryButtons = Array.from(document.querySelectorAll("[data-recovery-button]"));
+  const restoreDatabaseButton = document.getElementById("restore-database-button");
+  const rebuildViewerButton = document.getElementById("rebuild-viewer-button");
+  const emergencyShellButton = document.getElementById("emergency-shell-button");
+  const recoveryShell = document.getElementById("recovery-shell");
+  const recoveryShellOutput = document.getElementById("recovery-shell-output");
+  const recoveryShellInput = document.getElementById("recovery-shell-input");
+  const recoveryProgress = document.getElementById("recovery-progress");
+  const recoveryProgressOutput = recoveryProgress.querySelector("output");
+  const spiderField = document.getElementById("spider-field");
+  const devTerminal = document.getElementById("dev-terminal");
+  const devTerminalClose = document.getElementById("dev-terminal-close");
+  const devTerminalOutput = document.getElementById("dev-terminal-output");
+  const devTerminalInput = document.getElementById("dev-terminal-input");
 
   let recordRows = [];
   let currentCollection = "NORMAL";
@@ -91,6 +113,22 @@
   let dataDamageCompletedOnce = false;
   let newDataCompletedOnce = false;
   let virusSelectionMode = false;
+  let hackerTakeoverTimer = 0;
+  let hackerTakeoverStarted = false;
+  let spiderAttackStarted = false;
+  let spiderAttackTimer = 0;
+  let recoveryAutoAttackTimer = 0;
+  let spidersRemaining = 0;
+  let shellUnlocked = false;
+  let shellCommandIndex = 0;
+  let databaseRemounted = false;
+  let databaseRestored = false;
+  let rebuildBlockedForShell = false;
+  let shellFlashTimer = 0;
+  const dbviewerCommandsEntered = new Set();
+  let devUnlockStep = 0;
+  let typedBuffer = "";
+  let devCommandIndex = 0;
   const selectedEventRecordIds = new Set();
   const eventState = {
     virusIds: [],
@@ -120,13 +158,13 @@
     VIRUS: ["!", "virus"],
   };
 
-  const EVENT_COMPLETED_KEY = "hackulean_managedatabase_events_completed";
-  const ACTIVE_EVENT_KEY = "hackulean_managedatabase_active_event";
-  const DATA_DAMAGE_TRACKER_KEY = "hackulean_managedatabase_data_damage_completed";
-  const NEW_DATA_TRACKER_KEY = "hackulean_managedatabase_new_data_found_completed";
+  const EVENT_COMPLETED_KEY = "hackulean_defeathackers_events_completed";
+  const ACTIVE_EVENT_KEY = "hackulean_defeathackers_active_event";
+  const DATA_DAMAGE_TRACKER_KEY = "hackulean_defeathackers_data_damage_completed";
+  const NEW_DATA_TRACKER_KEY = "hackulean_defeathackers_new_data_found_completed";
   const COMPLETION_STORE_KEY = "hackulean_puzzle_completion_map";
   const ROOT_COMPLETION_SIGNAL = "puzzle_completed";
-  const PUZZLE_ID = "06-manage-database";
+  const PUZZLE_ID = "07-defeat-hackers";
   const eventDefinitions = [
     {
       name: "Virus Attack",
@@ -336,7 +374,7 @@
       const puzzleKeys = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key?.startsWith("hackulean_managedatabase_")) puzzleKeys.push(key);
+        if (key?.startsWith("hackulean_defeathackers_")) puzzleKeys.push(key);
       }
       puzzleKeys.forEach((key) => localStorage.removeItem(key));
     } catch (_error) {
@@ -352,6 +390,499 @@
     eventBanner.classList.add("hidden");
     databaseManager.classList.add("hidden");
     partTwoComplete.classList.remove("hidden");
+  }
+
+  function readFlag(key) {
+    try {
+      return localStorage.getItem(key) === "1";
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function writeFlag(key) {
+    try {
+      localStorage.setItem(key, "1");
+    } catch (_error) {}
+  }
+
+  function removeFlag(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (_error) {}
+  }
+
+  function appendDevLine(text, type = "") {
+    const line = document.createElement("span");
+    if (type) line.className = type;
+    line.textContent = text;
+    devTerminalOutput.appendChild(line);
+    devTerminalOutput.scrollTop = devTerminalOutput.scrollHeight;
+  }
+
+  function showDevTerminal(focus = false) {
+    devTerminal.classList.remove("hidden");
+    if (!devTerminalOutput.children.length) appendDevLine("dev terminal ready");
+    if (focus) devTerminalInput.focus();
+  }
+
+  function unlockDevTerminal() {
+    writeFlag(DEV_TERMINAL_KEY);
+    fragmentDialog.close();
+    showDevTerminal(true);
+  }
+
+  function setDevUnlockStep(step) {
+    devUnlockStep = Math.max(devUnlockStep, step);
+    typedBuffer = "";
+  }
+
+  function handleSecretTyping(character) {
+    if (!readFlag(HACKERS_DEFEATED_KEY) || readFlag(DEV_TERMINAL_KEY)) return;
+    if (document.activeElement === devTerminalInput || document.activeElement === recoveryShellInput) return;
+    typedBuffer = `${typedBuffer}${character}`.slice(-24);
+    if (devUnlockStep === 2 && typedBuffer.endsWith("KEYCODE")) setDevUnlockStep(3);
+    else if (devUnlockStep === 4 && typedBuffer.endsWith("ErrSystem")) setDevUnlockStep(5);
+    else if (devUnlockStep === 8 && typedBuffer.endsWith("UnlockTerminal123")) unlockDevTerminal();
+  }
+
+  function maybeNoteFragmentInspect() {
+    const selectedIndex = recordRows.findIndex((row) => row.classList.contains("selected"));
+    if (devUnlockStep === 7 && currentCollection === "NORMAL" && selectedIndex === 2) setDevUnlockStep(8);
+  }
+
+  const devCommands = [
+    {
+      command: "add-schedule virusscanner-sigupdate",
+      output: ["Added schedule"],
+      instant: true,
+    },
+    {
+      command: "add-schedule update-modules",
+      output: ["Added schedule"],
+      instant: true,
+    },
+    {
+      command: "module update --all",
+      output: ["checking module manifest...", "downloading signed module bundle", "module set staged for reboot"],
+    },
+    {
+      command: "module cmd virus-scanner download-signatures",
+      output: ["connecting to signature mirror...", "signature bundle verified", "virus scanner signatures staged"],
+    },
+  ];
+
+  async function completeDevCommands() {
+    writeFlag(DEV_COMMANDS_READY_KEY);
+    appendDevLine("reboot required", "ok");
+  }
+
+  async function handleDevCommand(command) {
+    const trimmed = command.trim();
+    if (!trimmed) return;
+    devTerminalInput.disabled = true;
+    appendDevLine(`> ${trimmed}`);
+    if (trimmed === "reboot") {
+      devTerminalInput.disabled = false;
+      devTerminalInput.value = "";
+      await runRebootThenStartup();
+      return;
+    }
+    const expected = devCommands[devCommandIndex];
+    if (!expected || trimmed !== expected.command) {
+      appendDevLine("command rejected", "error");
+      devTerminalInput.disabled = false;
+      devTerminalInput.focus();
+      return;
+    }
+    for (const line of expected.output) {
+      if (!expected.instant) await wait(350);
+      appendDevLine(line, "ok");
+    }
+    devCommandIndex += 1;
+    if (devCommandIndex >= devCommands.length) await completeDevCommands();
+    devTerminalInput.disabled = false;
+    devTerminalInput.focus();
+  }
+
+  function scheduleHackerTakeover() {
+    window.clearTimeout(hackerTakeoverTimer);
+    if (readFlag(RECOVERY_KEY) || readFlag(SPIDERS_DEFEATED_KEY) || readFlag(HACKERS_DEFEATED_KEY) || hackerTakeoverStarted) return;
+    hackerTakeoverTimer = window.setTimeout(() => {
+      void startHackerTakeover();
+    }, 15_000);
+  }
+
+  function virusRecord(index) {
+    return [
+      `VX-${String(9000 + index * 13).padStart(5, "0")}`,
+      "VIRUS",
+      0,
+      "99",
+      "HACKER",
+      "HOSTILE",
+      "NOW",
+    ];
+  }
+
+  async function startHackerTakeover() {
+    if (hackerTakeoverStarted || readFlag(RECOVERY_KEY)) return;
+    hackerTakeoverStarted = true;
+    window.clearTimeout(hackerTakeoverTimer);
+    hackerAlert.classList.remove("hidden");
+    await wait(1300);
+
+    renderCollection("NORMAL");
+    const rows = [...recordRows];
+    rows.forEach((row) => row.classList.add("is-virus-overwrite"));
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      row.dataset.record = `VX-${String(9000 + index * 13).padStart(5, "0")}`;
+      row.dataset.type = "VIRUS";
+      row.dataset.integrity = "0";
+      row.dataset.owner = "HACKER";
+      row.dataset.lock = "HOSTILE";
+      row.innerHTML = `<span><i class="virus" aria-hidden="true">!</i> ${row.dataset.record}</span><span>VIRUS</span><span class="bad">0%</span><span>NOW</span>`;
+      await wait(180);
+    }
+
+    let virusIndex = 0;
+    Object.keys(recordsByCollection).forEach((collection) => {
+      recordsByCollection[collection] = recordsByCollection[collection].map(() => virusRecord(virusIndex++));
+    });
+    saveRecords();
+    await wait(900);
+    hackerAlert.classList.add("hidden");
+    databaseManager.classList.add("hidden");
+    criticalException.classList.remove("hidden");
+    await wait(1800);
+    criticalException.classList.add("hidden");
+    writeFlag(RECOVERY_KEY);
+    showRecoveryScreen();
+  }
+
+  function resetRecoveryButtons() {
+    recoveryButtons.forEach((button) => {
+      button.dataset.health = "100";
+      button.style.setProperty("--health", "100%");
+      button.disabled = false;
+    });
+  }
+
+  function setRecoveryButtonsEnabled(enabled) {
+    recoveryButtons.forEach((button) => {
+      button.disabled = !enabled;
+    });
+  }
+
+  function setRecoveryMessage(message, tone = "normal") {
+    recoveryStatus.textContent = message;
+    recoveryStatus.dataset.tone = tone;
+  }
+
+  function updateRecoveryActionStates() {
+    const spidersDefeated = readFlag(SPIDERS_DEFEATED_KEY);
+    restoreDatabaseButton.disabled = databaseRestored;
+    rebuildViewerButton.disabled = rebuildBlockedForShell;
+    emergencyShellButton.disabled = !spidersDefeated || !shellUnlocked;
+  }
+
+  function unlockEmergencyShell(message) {
+    shellUnlocked = true;
+    emergencyShellButton.classList.add("is-flashing");
+    window.clearTimeout(shellFlashTimer);
+    shellFlashTimer = window.setTimeout(() => {
+      emergencyShellButton.classList.remove("is-flashing");
+    }, 3000);
+    setRecoveryMessage(message, "error");
+    updateRecoveryActionStates();
+  }
+
+  function appendShellLine(text, type = "") {
+    const line = document.createElement("span");
+    if (type) line.className = type;
+    line.textContent = text;
+    recoveryShellOutput.appendChild(line);
+    recoveryShellOutput.scrollTop = recoveryShellOutput.scrollHeight;
+  }
+
+  function openEmergencyShell() {
+    if (!shellUnlocked) return;
+    emergencyShellButton.classList.remove("is-flashing");
+    window.clearTimeout(shellFlashTimer);
+    recoveryShell.classList.remove("hidden");
+    recoveryShellInput.disabled = false;
+    if (!recoveryShellOutput.children.length) {
+      appendShellLine("Emergency shell ready.");
+    }
+    recoveryShellInput.focus();
+  }
+
+  const requiredShellCommands = [
+    "remount -o remount,rw /archive/database",
+    "dbviewer-index --verify --repair-map",
+    "sessionctl --elevate write-channel",
+  ];
+
+  const remountCommandOutputs = [
+    ["checking archive journal...", "write lock detected on /dev/hkdb0", "negotiating temporary mount token..."],
+    ["18 anomaly headers indexed", "fragment allocation map loaded", "repair map staged in volatile memory"],
+    ["requesting local write channel", "session permissions synchronized", "archive remounted read/write"],
+  ];
+
+  const hackerCleanupCommands = [
+    "dbviewer cleanse-virus --restore-integrity --all",
+    "dbviewer remove-user --bulk --unknown --scan-files --block",
+  ];
+
+  const hackerCleanupCommandOutputs = {
+    "dbviewer cleanse-virus --restore-integrity --all": [
+      "scanning restored archive sectors...",
+      "payload signatures removed from record bodies",
+      "integrity fields normalized against clean map",
+    ],
+    "dbviewer remove-user --bulk --unknown --scan-files --block": [
+      "enumerating unknown session principals...",
+      "revoking unauthorized archive handles",
+      "file scan hooks blocked for unknown users",
+    ],
+  };
+
+  async function completeHackerCleanup() {
+    writeFlag(HACKERS_DEFEATED_KEY);
+    removeFlag(RECOVERY_KEY);
+    Object.keys(recordsByCollection).forEach((collection) => {
+      recordsByCollection[collection] = [];
+    });
+    generateRecords();
+    saveRecords();
+    renderCollection("NORMAL");
+    renderIntegrity();
+    shellUnlocked = false;
+    rebuildBlockedForShell = false;
+    emergencyShellButton.classList.remove("is-flashing");
+    recoveryShell.classList.add("hidden");
+    setRecoveryMessage("Hacker command channel blocked. Rebuild Viewer is available.");
+    updateRecoveryActionStates();
+  }
+
+  async function runRebuildViewerProcess() {
+    rebuildViewerButton.disabled = true;
+    restoreDatabaseButton.disabled = true;
+    emergencyShellButton.disabled = true;
+    recoveryProgress.classList.remove("hidden");
+    for (let progress = 0; progress <= 100; progress += 5) {
+      setRecoveryMessage(`REBUILDING VIEWER... ${progress}%`);
+      recoveryProgress.style.setProperty("--progress", `${progress}%`);
+      recoveryProgressOutput.textContent = `${progress}%`;
+      await wait(120);
+    }
+    for (let seconds = 3; seconds >= 1; seconds -= 1) {
+      setRecoveryMessage(`Viewer rebuild complete. Rebooting in ${seconds}...`);
+      await wait(1000);
+    }
+    recoveryScreen.classList.add("hidden");
+    await runRebootThenStartup();
+  }
+
+  async function handleShellCommand(command) {
+    const trimmed = command.trim();
+    if (!trimmed) return;
+    recoveryShellInput.disabled = true;
+    appendShellLine(`> ${trimmed}`);
+    if (databaseRemounted && rebuildBlockedForShell) {
+      if (trimmed === "dbviewer") {
+        appendShellLine("No command provided. Failed with error code ssnuDaNZ.", "error");
+      } else if (hackerCleanupCommands.includes(trimmed)) {
+        dbviewerCommandsEntered.add(trimmed);
+        for (const line of hackerCleanupCommandOutputs[trimmed]) {
+          await wait(350);
+          appendShellLine(line, "ok");
+        }
+        if (dbviewerCommandsEntered.size >= hackerCleanupCommands.length) {
+          await wait(350);
+          await completeHackerCleanup();
+          return;
+        }
+      } else {
+        appendShellLine("dbviewer command rejected", "error");
+      }
+      recoveryShellInput.disabled = false;
+      recoveryShellInput.focus();
+      return;
+    }
+    const expected = requiredShellCommands[shellCommandIndex];
+    if (trimmed !== expected) {
+      appendShellLine("command rejected", "error");
+      recoveryShellInput.disabled = false;
+      recoveryShellInput.focus();
+      return;
+    }
+    shellCommandIndex += 1;
+    for (const line of remountCommandOutputs[shellCommandIndex - 1]) {
+      await wait(350);
+      appendShellLine(line, "ok");
+    }
+    if (shellCommandIndex < requiredShellCommands.length) {
+      recoveryShellInput.disabled = false;
+      recoveryShellInput.focus();
+      return;
+    }
+    databaseRemounted = true;
+    shellUnlocked = false;
+    emergencyShellButton.classList.remove("is-flashing");
+    recoveryShellInput.disabled = false;
+    recoveryShell.classList.add("hidden");
+    appendShellLine("write channel elevated; database remounted read-write", "ok");
+    setRecoveryMessage("Remount successful. Restore Database can now run.");
+    updateRecoveryActionStates();
+  }
+
+  async function runRestoreProcess() {
+    if (databaseRestored) return;
+    restoreDatabaseButton.disabled = true;
+    rebuildViewerButton.disabled = true;
+    emergencyShellButton.disabled = true;
+    recoveryShell.classList.add("hidden");
+    for (let progress = 0; progress <= 100; progress += 10) {
+      setRecoveryMessage(`RESTORING DATABASE... ${progress}%`);
+      await wait(180);
+    }
+    databaseRestored = true;
+    setRecoveryMessage("Database restored. Rebuild Viewer is now available.");
+    updateRecoveryActionStates();
+  }
+
+  function handleRestoreDatabase() {
+    if (!readFlag(SPIDERS_DEFEATED_KEY)) {
+      startSpiderAttack();
+      return;
+    }
+    if (!databaseRemounted) {
+      unlockEmergencyShell("Database is read-only. REMOUNT the database first with: remount -o remount,rw /archive/database; then dbviewer-index --verify --repair-map; then sessionctl --elevate write-channel.");
+      return;
+    }
+    void runRestoreProcess();
+  }
+
+  function handleRebuildViewer() {
+    if (!readFlag(SPIDERS_DEFEATED_KEY)) {
+      startSpiderAttack();
+      return;
+    }
+    if (!databaseRestored) {
+      setRecoveryMessage("Cannot rebuild viewer: database is corrupted. Restore the database first.", "error");
+      return;
+    }
+    if (readFlag(HACKERS_DEFEATED_KEY)) {
+      void runRebuildViewerProcess();
+      return;
+    }
+    rebuildBlockedForShell = true;
+    rebuildViewerButton.disabled = true;
+    unlockEmergencyShell("Graphical interface cannot run: internet connection is unsafe because hackers are still connected. Use dbviewer commands in the command line.");
+  }
+
+  function showRecoveryScreen() {
+    window.clearTimeout(hackerTakeoverTimer);
+    window.clearTimeout(recoveryAutoAttackTimer);
+    stopMemoryStream();
+    loadingScreen.hidden = true;
+    viewerIntro.classList.add("hidden");
+    databaseManager.classList.add("hidden");
+    hackerAlert.classList.add("hidden");
+    criticalException.classList.add("hidden");
+    recoveryScreen.classList.remove("hidden");
+    resetRecoveryButtons();
+    spiderField.replaceChildren();
+    recoveryShell.classList.add("hidden");
+    recoveryProgress.classList.add("hidden");
+    recoveryProgress.style.setProperty("--progress", "0%");
+    recoveryProgressOutput.textContent = "0%";
+    spiderAttackStarted = false;
+    if (readFlag(HACKERS_DEFEATED_KEY)) {
+      databaseRemounted = true;
+      databaseRestored = true;
+      rebuildBlockedForShell = false;
+      shellUnlocked = false;
+    }
+    if (readFlag(SPIDERS_DEFEATED_KEY)) {
+      setRecoveryMessage("Spider payload defeated. Recovery controls are unlocked.");
+      updateRecoveryActionStates();
+      return;
+    }
+    setRecoveryMessage("Choose a recovery option. Defensive systems are unstable.");
+    updateRecoveryActionStates();
+    recoveryAutoAttackTimer = window.setTimeout(startSpiderAttack, 5_000);
+  }
+
+  function resetSpiderAttack() {
+    window.clearInterval(spiderAttackTimer);
+    spiderField.replaceChildren();
+    resetRecoveryButtons();
+    spiderAttackStarted = false;
+    setRecoveryMessage("Recovery button destroyed. Defensive state reset.", "error");
+    updateRecoveryActionStates();
+    recoveryAutoAttackTimer = window.setTimeout(startSpiderAttack, 1200);
+  }
+
+  function updateButtonHealth(button, amount) {
+    const health = Math.max(0, Number(button.dataset.health || "100") - amount);
+    button.dataset.health = String(health);
+    button.style.setProperty("--health", `${health}%`);
+    if (health <= 0) resetSpiderAttack();
+  }
+
+  function spawnSpider(index) {
+    const spider = document.createElement("button");
+    spider.type = "button";
+    spider.className = "spider";
+    spider.setAttribute("aria-label", "Defeat spider");
+    spider.dataset.target = String(index % recoveryButtons.length);
+    spider.dataset.offsetX = String(((index % 3) - 1) * 30);
+    spider.dataset.offsetY = String((Math.floor(index / 3) - 1) * 18);
+    spider.style.left = `${12 + (index * 17) % 72}%`;
+    spider.style.top = `${58 + (index * 11) % 28}%`;
+    spider.addEventListener("click", () => {
+      if (spider.classList.contains("is-hit")) return;
+      spider.classList.add("is-hit");
+      spidersRemaining -= 1;
+      window.setTimeout(() => spider.remove(), 170);
+      if (spidersRemaining <= 0) {
+        window.clearInterval(spiderAttackTimer);
+        writeFlag(SPIDERS_DEFEATED_KEY);
+        setRecoveryMessage("Spiders defeated. Recovery controls unlocked.");
+        updateRecoveryActionStates();
+      }
+    });
+    spiderField.appendChild(spider);
+    return spider;
+  }
+
+  function startSpiderAttack() {
+    if (spiderAttackStarted || readFlag(SPIDERS_DEFEATED_KEY)) return;
+    window.clearTimeout(recoveryAutoAttackTimer);
+    spiderAttackStarted = true;
+    setRecoveryMessage("Spider payload active. Click every spider before a recovery button is destroyed.", "error");
+    setRecoveryButtonsEnabled(false);
+    emergencyShellButton.classList.remove("is-flashing");
+    const spiders = Array.from({ length: 9 }, (_, index) => spawnSpider(index));
+    spidersRemaining = spiders.length;
+    spiderAttackTimer = window.setInterval(() => {
+      const livingSpiders = spiders.filter((spider) => spider.isConnected && !spider.classList.contains("is-hit"));
+      livingSpiders.forEach((spider) => {
+        const target = recoveryButtons[Number(spider.dataset.target) || 0];
+        const targetRect = target.getBoundingClientRect();
+        const panelRect = spiderField.getBoundingClientRect();
+        const offsetX = Number(spider.dataset.offsetX) || 0;
+        const offsetY = Number(spider.dataset.offsetY) || 0;
+        const nextLeft = targetRect.left - panelRect.left + targetRect.width / 2 - 17 + offsetX;
+        const nextTop = targetRect.top - panelRect.top + targetRect.height / 2 - 17 + offsetY;
+        spider.style.left = `${Math.max(8, Math.min(panelRect.width - 42, nextLeft))}px`;
+        spider.style.top = `${Math.max(8, Math.min(panelRect.height - 42, nextTop))}px`;
+        updateButtonHealth(target, 4);
+      });
+    }, 950);
   }
 
   function formatTimer(milliseconds) {
@@ -410,6 +941,8 @@
     document.getElementById("inspector-fragments").textContent = fragments;
     document.getElementById("inspector-owner").textContent = owner;
     document.getElementById("inspector-lock").textContent = lock;
+    const selectedIndex = recordRows.indexOf(row);
+    if (readFlag(HACKERS_DEFEATED_KEY) && devUnlockStep === 6 && currentCollection === "NORMAL" && selectedIndex === 2) setDevUnlockStep(7);
   }
 
   function renderCollection(collection) {
@@ -566,6 +1099,8 @@
     button.addEventListener("click", () => {
       collectionButtons.forEach((candidate) => candidate.classList.toggle("active", candidate === button));
       renderCollection(button.dataset.collection);
+      if (readFlag(HACKERS_DEFEATED_KEY) && devUnlockStep === 3 && button.dataset.collection === "QUARANTINE") setDevUnlockStep(4);
+      if (readFlag(HACKERS_DEFEATED_KEY) && devUnlockStep === 5 && button.dataset.collection === "NORMAL") setDevUnlockStep(6);
     });
   });
 
@@ -573,7 +1108,10 @@
     tab.addEventListener("click", () => {
       managerTabs.forEach((candidate) => candidate.classList.toggle("active", candidate === tab));
       managerPanels.forEach((panel) => panel.classList.toggle("active", panel.id === tab.dataset.panel));
-      if (tab.dataset.panel === "memory-panel") startMemoryStream();
+      if (tab.dataset.panel === "memory-panel") {
+        if (readFlag(HACKERS_DEFEATED_KEY) && devUnlockStep === 0) setDevUnlockStep(1);
+        startMemoryStream();
+      }
       else {
         unfreezeMemory();
         stopMemoryStream();
@@ -587,6 +1125,7 @@
     freezeFrameButton.textContent = "Frame Frozen";
     stopMemoryStream();
     renderMemory(true);
+    if (readFlag(HACKERS_DEFEATED_KEY) && devUnlockStep === 1) setDevUnlockStep(2);
   });
 
   quarantineVirusButton.addEventListener("click", () => {
@@ -1770,6 +2309,7 @@
   inspectFragmentsButton.addEventListener("click", () => {
     const selectedRecord = recordRows.find((row) => row.classList.contains("selected"));
     if (!selectedRecord) return;
+    maybeNoteFragmentInspect();
     const { record, type, integrity, fragments, owner, lock } = selectedRecord.dataset;
     const random = seededRandom(hashSeed(`${getSeed()}|${record}|${type}|${integrity}|${fragments}|${owner}|${lock}`));
     const fragment = document.createDocumentFragment();
@@ -1818,18 +2358,18 @@
     loadingLines.replaceChildren();
     loadingScreen.classList.remove("is-complete");
     loadingScreen.hidden = false;
-    document.body.classList.add("managedatabase-loading");
+    document.body.classList.add("defeathackers-loading");
     viewerIntro.classList.remove("hidden");
     databaseManager.classList.add("hidden");
     startButton.disabled = true;
     await typeProgressLine("Initializing database viewer...");
-    await typeProgressLine("Loading incident modules...");
+    await typeProgressLine("Loading defense modules...");
     await typeProgressLine("Allocating memory...");
     await wait(250);
     loadingScreen.classList.add("is-complete");
     await wait(1100);
     loadingScreen.hidden = true;
-    document.body.classList.remove("managedatabase-loading");
+    document.body.classList.remove("defeathackers-loading");
     startButton.disabled = false;
   }
 
@@ -1839,18 +2379,22 @@
     renderCollection(currentCollection);
     renderMemory();
     renderIntegrity();
+    loadingScreen.hidden = true;
+    document.body.classList.remove("defeathackers-loading");
     viewerIntro.classList.add("hidden");
     databaseManager.classList.remove("hidden");
+    recoveryScreen.classList.add("hidden");
     if (animate) {
       databaseManager.classList.add("is-opening");
       window.setTimeout(() => databaseManager.classList.remove("is-opening"), 550);
     }
     if (document.getElementById("memory-panel").classList.contains("active")) startMemoryStream();
-    scheduleFirstEvent();
+    scheduleHackerTakeover();
+    if (readFlag(DEV_TERMINAL_KEY)) showDevTerminal(false);
   }
 
   const rebootLines = [
-    "[    0.000000] Linux version 6.8.7-hackulean (root@viewer06) #1 SMP PREEMPT_DYNAMIC",
+    "[    0.000000] Linux version 6.8.7-hackulean (root@viewer07) #1 SMP PREEMPT_DYNAMIC",
     "[    0.000013] Command line: BOOT_IMAGE=/boot/vmlinuz root=/dev/mapper/archive rw",
     "[    0.084110] BIOS-provided physical RAM map loaded",
     "[    0.227904] Memory: 4021184K/4194304K available",
@@ -1858,7 +2402,7 @@
     "[    0.793241] devtmpfs: initialized",
     "[    1.846720] EXT4-fs (dm-0): recovery complete",
     "[    2.190443] EXT4-fs (dm-0): mounted filesystem read-write",
-    "[    2.803761] systemd[1]: Hostname set to archive-viewer-06.",
+    "[    2.803761] systemd[1]: Hostname set to archive-viewer-07.",
     "[    3.184205] systemd[1]: Reached target Local File Systems.",
     "[    3.519004] systemd[1]: Starting Database Viewer Service...",
     "[    3.880127] dbmanager[608]: loading incident management modules",
@@ -1869,6 +2413,9 @@
   ];
 
   async function runRebootThenStartup() {
+    const shouldCompletePuzzle = readFlag(DEV_COMMANDS_READY_KEY);
+    removeFlag(DEV_TERMINAL_KEY);
+    devTerminal.classList.add("hidden");
     rebootButton.disabled = true;
     updateRebootButton.disabled = true;
     rebootLog.textContent = "";
@@ -1883,6 +2430,12 @@
     }
     await wait(650);
     rebootScreen.classList.add("hidden");
+    if (shouldCompletePuzzle) {
+      showCompletionModal();
+      rebootButton.disabled = false;
+      updateRebootButton.disabled = false;
+      return;
+    }
     await runLoadingSequence();
     rebootButton.disabled = false;
     updateRebootButton.disabled = false;
@@ -1895,21 +2448,54 @@
     clearPuzzleStorage();
   });
 
+  recoveryButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      if (button.dataset.recoveryAction === "restore") handleRestoreDatabase();
+      if (button.dataset.recoveryAction === "rebuild") handleRebuildViewer();
+      if (button.dataset.recoveryAction === "shell") openEmergencyShell();
+    });
+  });
+
+  recoveryShellInput.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    const command = recoveryShellInput.value;
+    recoveryShellInput.value = "";
+    await handleShellCommand(command);
+  });
+
+  devTerminalInput.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    const command = devTerminalInput.value;
+    devTerminalInput.value = "";
+    await handleDevCommand(command);
+  });
+
+  devTerminalClose.addEventListener("click", () => {
+    devTerminal.classList.add("hidden");
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key.length !== 1 || event.ctrlKey || event.metaKey || event.altKey) return;
+    const tagName = document.activeElement?.tagName;
+    if (tagName === "INPUT" || tagName === "TEXTAREA") return;
+    handleSecretTyping(event.key);
+  });
+
   startButton.addEventListener("click", () => {
     startButton.disabled = true;
     resetEventProgress();
     generateSeed();
     generateRecords();
     saveRecords();
-    try {
-      localStorage.setItem(TITLE_BLOCKER_KEY, "1");
-    } catch (_error) {}
     showManager();
   });
 
   async function runUpdateContinuation() {
     loadingScreen.hidden = true;
-    document.body.classList.remove("managedatabase-loading");
+    document.body.classList.remove("defeathackers-loading");
     viewerIntro.classList.add("hidden");
     updateContinuation.classList.remove("hidden");
     const params = new URLSearchParams(window.location.search);
@@ -1928,20 +2514,24 @@
 
   if (window.HackuleanStage2Title?.isBlocked()) {
     loadingScreen.hidden = true;
-    document.body.classList.remove("managedatabase-loading");
-    showManager(false);
+    document.body.classList.remove("defeathackers-loading");
+    if (readFlag(HACKERS_DEFEATED_KEY)) {
+      removeFlag(RECOVERY_KEY);
+      showManager(false);
+    } else {
+      showRecoveryScreen();
+    }
   } else if (document.querySelector(".stage-two-title-screen")) {
-    const startAfterTitle = new URLSearchParams(window.location.search).get("title") === "1"
-      ? runLoadingSequence
-      : runUpdateContinuation;
-    window.addEventListener("hackulean:stage-two-launched", startAfterTitle, { once: true });
-  } else if (new URLSearchParams(window.location.search).get("title") !== "1") {
-    runUpdateContinuation();
+    window.addEventListener("hackulean:stage-two-launched", () => showManager(), { once: true });
   } else {
-    runLoadingSequence();
+    showManager(false);
   }
   window.addEventListener("pagehide", () => {
     stopMemoryStream();
+    window.clearTimeout(hackerTakeoverTimer);
+    window.clearTimeout(recoveryAutoAttackTimer);
+    window.clearTimeout(shellFlashTimer);
+    window.clearInterval(spiderAttackTimer);
     window.clearTimeout(eventStartTimer);
     window.clearTimeout(eventNextTimer);
     window.clearInterval(eventInterval);
