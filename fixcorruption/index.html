@@ -89,8 +89,18 @@
         <button id="fragment-dialog-close" type="button" aria-label="Close fragment map">×</button>
       </div>
       <p id="fragment-dialog-summary" class="fragment-dialog-summary"></p>
+      <div id="fragment-virus-alert" class="fragment-virus-alert" role="alert" hidden>! VIRUS SIGNATURE DETECTED IN FRAGMENT MAP</div>
       <div id="fragment-grid" class="fragment-grid"></div>
       <footer><span>VALUES RECONSTRUCTED FROM DAMAGED SECTORS</span><span>READ ONLY</span></footer>
+    </dialog>
+    <dialog id="mp2-virus-count-dialog" class="mp2-virus-count-dialog" aria-labelledby="mp2-virus-count-title">
+      <p>VIRUS ENUMERATION // MANUAL OVERRIDE</p>
+      <h2 id="mp2-virus-count-title">Count infected records</h2>
+      <p>Increment the counter to the exact number of virus records currently attached to the database.</p>
+      <output id="mp2-virus-count">0</output>
+      <button id="mp2-virus-count-plus" type="button" aria-label="Increase virus count">+</button>
+      <button id="mp2-virus-count-confirm" type="button">Confirm Count</button>
+      <p id="mp2-virus-count-error" class="mp2-virus-count-error" aria-live="polite"></p>
     </dialog>
     <section id="remount-terminal" class="remount-terminal hidden" aria-label="Remount terminal">
       <header><span>REMOUNT CONSOLE // LOCAL TTY</span><span id="remount-terminal-state">RUNNING</span></header>
@@ -134,6 +144,31 @@
         <button id="resolver-begin-button" type="button">Begin Run</button>
       </div>
     </section>
+    <section id="mp2-virus-runner" class="resolver-game mp2-virus-runner hidden" aria-label="Virus fragment runner">
+      <canvas id="mp2-virus-canvas"></canvas>
+      <header class="resolver-hud">
+        <div><span>RUN TIME</span><strong id="mp2-virus-timer">00:00</strong></div>
+        <div><span>CHECKPOINTS</span><strong id="mp2-virus-score">0</strong></div>
+      </header>
+      <div class="resolver-level-progress"><span id="mp2-virus-progress"></span></div>
+      <p id="mp2-virus-objective" class="resolver-objective">REACH THE EXIT PORTAL</p>
+      <p class="resolver-help">SPACE / CLICK / TAP TO JUMP</p>
+      <div id="mp2-virus-message" class="resolver-game-message hidden"></div>
+      <div id="mp2-virus-guide" class="resolver-briefing">
+        <p>INFECTED FRAGMENT ROUTE</p>
+        <h2>Cross the combined sector</h2>
+        <p>Use platforms and LIFT or VAULT pads to cross pits and hazards. Buttons may open doors, close doors, or toggle jump pads. Red pluses activate a harder route but save checkpoints; green pluses save normal checkpoints; blue pluses are traps. Blue spikes move when approached, yellow spikes make later sectors harder, and hacker buttons introduce hostile features farther ahead.</p>
+        <div class="resolver-legend mp2-runner-legend">
+          <span><i class="checkpoint">+</i>GREEN CHECKPOINT</span>
+          <span><i class="hard-plus">+</i>HARD CHECKPOINT</span>
+          <span><i class="troll-plus">+</i>TROLL PLUS</span>
+          <span><i class="boost"></i>JUMP PAD</span>
+          <span><i class="door-icon"></i>DOOR / BUTTON</span>
+          <span><i class="hacker-icon">H</i>HACKER BUTTON</span>
+        </div>
+        <button id="mp2-virus-begin" type="button">Begin Run</button>
+      </div>
+    </section>
     <aside id="resolver-notification" class="resolver-notification hidden" role="status" aria-live="polite">
       <span>UNSORTED DATA RESOLVED</span>
       <strong id="resolver-notification-record"></strong>
@@ -157,6 +192,16 @@
         <a id="complete-puzzle-button" href="/?signal=puzzle_completed&amp;puzzle=05-fixcorruption">Back to Puzzle Root</a>
       </div>
     </section>
+    <section id="mp2-virus-complete" class="mp2-virus-complete hidden" aria-labelledby="mp2-virus-complete-title">
+      <div>
+        <span>05 // CLEAN CHANNEL?</span>
+        <h2 id="mp2-virus-complete-title">PUZZLE C0MPL_TE</h2>
+        <p>VIRUS COUNT: 0 // DATABASE STATE: N_RMAL // ROUTE: [MISSING]</p>
+        <a href="/metapuzzle/2?signal=mp2_advance_to_puzzle_06">Back to Puzzle Root</a>
+      </div>
+    </section>
+    <script src="../stage2/mp2-state.js"></script>
+    <script src="../metapuzzle-status.js"></script>
     <script src="../stage2/title-screen.js"></script>
     <script src="script.js"></script>
   </body>

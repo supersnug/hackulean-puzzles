@@ -32,7 +32,13 @@
   const fragmentDialogClose = document.getElementById("fragment-dialog-close");
   const fragmentDialogTitle = document.getElementById("fragment-dialog-title");
   const fragmentDialogSummary = document.getElementById("fragment-dialog-summary");
+  const fragmentVirusAlert = document.getElementById("fragment-virus-alert");
   const fragmentGrid = document.getElementById("fragment-grid");
+  const mp2VirusCountDialog = document.getElementById("mp2-virus-count-dialog");
+  const mp2VirusCountOutput = document.getElementById("mp2-virus-count");
+  const mp2VirusCountPlus = document.getElementById("mp2-virus-count-plus");
+  const mp2VirusCountConfirm = document.getElementById("mp2-virus-count-confirm");
+  const mp2VirusCountError = document.getElementById("mp2-virus-count-error");
   const remountTerminal = document.getElementById("remount-terminal");
   const remountTerminalState = document.getElementById("remount-terminal-state");
   const remountTerminalOutput = document.getElementById("remount-terminal-output");
@@ -62,6 +68,15 @@
   const resolverNotificationRecord = document.getElementById("resolver-notification-record");
   const resolverNotificationFill = document.getElementById("resolver-notification-fill");
   const resolverNotificationStatus = document.getElementById("resolver-notification-status");
+  const mp2VirusRunner = document.getElementById("mp2-virus-runner");
+  const mp2VirusCanvas = document.getElementById("mp2-virus-canvas");
+  const mp2VirusTimer = document.getElementById("mp2-virus-timer");
+  const mp2VirusScore = document.getElementById("mp2-virus-score");
+  const mp2VirusProgress = document.getElementById("mp2-virus-progress");
+  const mp2VirusObjective = document.getElementById("mp2-virus-objective");
+  const mp2VirusMessage = document.getElementById("mp2-virus-message");
+  const mp2VirusGuide = document.getElementById("mp2-virus-guide");
+  const mp2VirusBegin = document.getElementById("mp2-virus-begin");
   const updateScreen = document.getElementById("update-screen");
   const updatePanel = document.getElementById("update-panel");
   const updateButton = document.getElementById("update-button");
@@ -70,8 +85,21 @@
   const updateProgressText = document.getElementById("update-progress-text");
   const partOneComplete = document.getElementById("part-one-complete");
   const completePuzzleButton = document.getElementById("complete-puzzle-button");
+  const mp2VirusComplete = document.getElementById("mp2-virus-complete");
   const activeCollection = document.getElementById("active-collection");
   let randomFlashesStarted = false;
+  let mp2VirusCountValue = 0;
+  let mp2VirusRebootReady = false;
+  try {
+    if (
+      window.HackuleanMP2State?.isActive()
+      && localStorage.getItem("hackulean_mp2_puzzle_05_viruses_cleared") === "1"
+    ) {
+      mp2VirusRebootReady = true;
+      rebootButton.classList.add("mp2-reboot-ready");
+      rebootButton.textContent = "Reboot to Complete";
+    }
+  } catch (_error) {}
   let recordRows = [];
   let currentCollection = "DAMAGED";
   let currentFilterIndex = 0;
@@ -126,10 +154,15 @@
 
   function restoreRecordState() {
     try {
-      const saved = JSON.parse(localStorage.getItem(RECORD_STATE_KEY) || "null");
+      const saved = window.HackuleanMP2State?.isActive()
+        ? window.HackuleanMP2State.loadCollections("05")
+        : JSON.parse(localStorage.getItem(RECORD_STATE_KEY) || "null");
       if (!saved || typeof saved !== "object") return;
       Object.keys(recordsByCollection).forEach((collection) => {
-        const records = saved[collection];
+        const sharedCollection = window.HackuleanMP2State?.isActive() && collection === "RECOVERED"
+          ? "NORMAL"
+          : collection;
+        const records = saved[sharedCollection];
         if (Array.isArray(records) && records.every((record) => Array.isArray(record) && record.length >= 7)) {
           recordsByCollection[collection] = records;
         }
@@ -141,6 +174,16 @@
   }
 
   function saveRecordState() {
+    if (window.HackuleanMP2State?.isActive()) {
+      window.HackuleanMP2State.saveCollections("05", {
+        NORMAL: recordsByCollection.RECOVERED,
+        DAMAGED: recordsByCollection.DAMAGED,
+        QUARANTINE: recordsByCollection.QUARANTINE,
+        UNSORTED: recordsByCollection.UNSORTED,
+        __meta: recordStateMeta,
+      });
+      return;
+    }
     try {
       localStorage.setItem(RECORD_STATE_KEY, JSON.stringify({ ...recordsByCollection, __meta: recordStateMeta }));
     } catch (_error) {
@@ -161,6 +204,7 @@
     RECOVERED: ["✓", "recovered"],
     QUARANTINE: ["×", "quarantine"],
     UNSORTED: ["?", "unsorted"],
+    VIRUS: ["!", "virus"],
   };
   const integrityFilters = [
     ["ALL", () => true],
@@ -245,7 +289,8 @@
       row.className = "record-row";
       row.type = "button";
       Object.assign(row.dataset, { record, type, integrity, fragments, owner, lock });
-      row.innerHTML = `<span><i class="${markerClass}" aria-hidden="true">${marker}</i> ${record}</span><span>${type}</span><span class="${integrityClass(integrity)}">${String(integrity).padStart(2, "0")}%</span><span>${modified}</span>`;
+      const [rowMarker, rowMarkerClass] = type === "VIRUS" ? collectionMarkers.VIRUS : [marker, markerClass];
+      row.innerHTML = `<span><i class="${rowMarkerClass}" aria-hidden="true">${rowMarker}</i> ${record}</span><span>${type}</span><span class="${integrityClass(integrity)}">${integrity}%</span><span>${modified}</span>`;
       row.addEventListener("click", () => selectRecord(row));
       fragment.appendChild(row);
     });
@@ -300,11 +345,15 @@
       values[1] = Math.floor(Math.random() * 0xffffffff);
     }
     const seed = Array.from(values, (value) => value.toString(16).padStart(8, "0")).join("");
-    try { localStorage.setItem(FRAGMENT_SEED_KEY, seed); } catch (_error) {}
+    if (!window.HackuleanMP2State?.isActive()) {
+      try { localStorage.setItem(FRAGMENT_SEED_KEY, seed); } catch (_error) {}
+    }
     return seed;
   }
 
   function getRunSeed() {
+    const sharedSeed = window.HackuleanMP2State?.getSeed(generateRunSeed);
+    if (sharedSeed) return sharedSeed;
     try {
       return localStorage.getItem(FRAGMENT_SEED_KEY) || generateRunSeed();
     } catch (_error) {
@@ -365,6 +414,7 @@
 
     fragmentDialogTitle.textContent = `${record} fragments`;
     fragmentDialogSummary.textContent = `${requestedFragments}/${totalFragments} sectors mapped // ${damagedCount} irregular // ${type} // ${owner} // ${lock} // capture ${randomHex(8, random)}`;
+    fragmentVirusAlert.hidden = !(window.HackuleanMP2State?.isActive() && type === "VIRUS");
     fragmentGrid.replaceChildren(fragment);
     fragmentDialog.showModal();
   });
@@ -373,6 +423,364 @@
   fragmentDialog.addEventListener("click", (event) => {
     if (event.target === fragmentDialog) fragmentDialog.close();
   });
+
+  let virusAlertClicks = 0;
+  fragmentVirusAlert.addEventListener("click", () => {
+    if (fragmentVirusAlert.hidden || !window.HackuleanMP2State?.isActive()) return;
+    try {
+      if (localStorage.getItem("hackulean_mp2_puzzle_05_runner_complete") === "1") {
+        fragmentDialog.close();
+        mp2VirusCountValue = 0;
+        mp2VirusCountOutput.textContent = "0";
+        mp2VirusCountError.textContent = "";
+        mp2VirusCountDialog.showModal();
+        return;
+      }
+    } catch (_error) {}
+    virusAlertClicks += 1;
+    fragmentVirusAlert.classList.remove("is-glitching");
+    void fragmentVirusAlert.offsetWidth;
+    fragmentVirusAlert.classList.add("is-glitching");
+    window.setTimeout(() => fragmentVirusAlert.classList.remove("is-glitching"), 130);
+    if (virusAlertClicks < 5) return;
+    virusAlertClicks = 0;
+    fragmentDialog.classList.add("virus-runner-launch");
+    window.setTimeout(() => {
+      fragmentDialog.close();
+      fragmentDialog.classList.remove("virus-runner-launch");
+      mp2VirusRunner.classList.remove("hidden");
+      mp2VirusGuide.classList.remove("hidden");
+      startMp2VirusRunner();
+    }, prefersReducedMotion ? 20 : 700);
+  });
+
+  mp2VirusCountPlus.addEventListener("click", () => {
+    mp2VirusCountValue = (mp2VirusCountValue + 1) % 100;
+    mp2VirusCountOutput.textContent = String(mp2VirusCountValue);
+    mp2VirusCountError.textContent = "";
+  });
+
+  mp2VirusCountConfirm.addEventListener("click", () => {
+    const virusCount = Object.values(recordsByCollection).flat().filter((record) => record[1] === "VIRUS").length;
+    if (mp2VirusCountValue !== virusCount) {
+      mp2VirusCountError.textContent = "COUNT MISMATCH // ENUMERATION REJECTED";
+      return;
+    }
+    mp2VirusCountConfirm.disabled = true;
+    mp2VirusCountDialog.close();
+    void runMp2VirusCleanup();
+  });
+
+  function startMp2VirusRunner() {
+    const context = mp2VirusCanvas.getContext("2d");
+    const player = { x: 112, y: 0, size: 32, velocityY: 0, grounded: true };
+    const levelEnd = 17_200;
+    const checkpoints = [
+      { x: 1700, kind: "hard" }, { x: 3900, kind: "hard" }, { x: 6100, kind: "green" },
+      { x: 8400, kind: "hard" }, { x: 10_900, kind: "green" }, { x: 12_700, kind: "hard" },
+      { x: 15_100, kind: "hard" },
+    ].map((plus) => ({ ...plus, collected: false }));
+    const trollPluses = [2850, 7350, 11_900, 14_350];
+    const spikes = [650, 1120, 2200, 3450, 4750, 5700, 7050, 9050, 10_250, 11_350, 12_500, 14_050, 15_550, 15_900]
+      .map((x, index) => ({ x, width: x === 5700 || x === 15_550 ? 190 : index % 4 === 2 ? 72 : 38, height: x === 5700 || x === 15_550 ? 50 : 44 }));
+    const hardSpikes = [2450, 5100, 6750, 9400, 11_650, 13_750].map((x) => ({ x, width: 105, height: 52 }));
+    const trollSpikes = [1500, 4250, 7900, 10_650, 13_500, 16_250].map((x) => ({ x, raised: false }));
+    const yellowSpikes = [3200, 8900, 12_850];
+    const pits = [{ x: 3650, width: 310 }, { x: 7650, width: 380 }, { x: 11_000, width: 330 }, { x: 14_600, width: 410 }];
+    const platforms = [
+      { x: 3700, width: 250, elevation: 125 }, { x: 7680, width: 330, elevation: 145 },
+      { x: 11_060, width: 250, elevation: 112 }, { x: 14_680, width: 315, elevation: 145 },
+    ];
+    const pads = [
+      { x: 3570, kind: "lift", power: -820, enabled: true, used: false },
+      { x: 5640, kind: "vault", power: -1300, enabled: true, used: false },
+      { x: 7520, kind: "lift", power: -1050, enabled: false, used: false },
+      { x: 10_190, kind: "fault", power: -250, enabled: true, used: false },
+      { x: 14_450, kind: "lift", power: -1050, enabled: false, used: false },
+      { x: 15_420, kind: "vault", power: -1500, enabled: true, used: false },
+    ];
+    const doors = [{ x: 4550, open: false }, { x: 9700, open: true }, { x: 13_950, open: false }];
+    const buttons = [
+      { x: 4100, type: "door", target: 0, used: false },
+      { x: 9250, type: "door", target: 1, used: false },
+      { x: 13_500, type: "door", target: 2, used: false },
+      { x: 7200, type: "pad", target: 2, used: false },
+      { x: 13_920, type: "pad", target: 4, used: false },
+      { x: 9850, type: "hacker", used: false },
+    ];
+    const initialPadEnabled = pads.map((pad) => pad.enabled);
+    const initialDoorOpen = doors.map((door) => door.open);
+    const hackerHazards = [11_750, 12_250, 13_100, 16_450, 16_850];
+    let width = 0;
+    let height = 0;
+    let ground = 0;
+    let worldX = 0;
+    let checkpointX = 0;
+    let previousTime = performance.now();
+    let startedAt = previousTime;
+    let frameId = 0;
+    let running = false;
+    let finished = false;
+    let hardRoute = false;
+    let hackerMode = false;
+    let checkpointCount = 0;
+    let invulnerableUntil = 0;
+
+    function resize() {
+      const ratio = devicePixelRatio || 1;
+      width = innerWidth;
+      height = innerHeight;
+      ground = height - 74;
+      mp2VirusCanvas.width = Math.floor(width * ratio);
+      mp2VirusCanvas.height = Math.floor(height * ratio);
+      mp2VirusCanvas.style.width = `${width}px`;
+      mp2VirusCanvas.style.height = `${height}px`;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      if (player.grounded) player.y = ground - player.size;
+    }
+
+    function jump(event) {
+      if (event?.type === "keydown" && !["Space", "ArrowUp", "KeyW"].includes(event.code)) return;
+      if (event?.type === "keydown") event.preventDefault();
+      if (running && player.grounded) {
+        player.velocityY = -650;
+        player.grounded = false;
+      }
+    }
+
+    function message(text, duration = 600) {
+      mp2VirusMessage.textContent = text;
+      mp2VirusMessage.classList.remove("hidden");
+      window.setTimeout(() => mp2VirusMessage.classList.add("hidden"), duration);
+    }
+
+    function respawn(now) {
+      worldX = checkpointX;
+      player.y = ground - player.size;
+      player.velocityY = 0;
+      player.grounded = true;
+      invulnerableUntil = now + 850;
+      pads.forEach((pad, index) => {
+        pad.enabled = initialPadEnabled[index];
+        pad.used = false;
+      });
+      doors.forEach((door, index) => { door.open = initialDoorOpen[index]; });
+      buttons.forEach((button) => { button.used = false; });
+      trollSpikes.forEach((spike) => { spike.raised = false; });
+      message("RUN RESTARTED");
+    }
+
+    function triangle(x, baseY, widthValue, heightValue, fill, stroke) {
+      context.beginPath();
+      context.moveTo(x, baseY);
+      context.lineTo(x + widthValue / 2, baseY - heightValue);
+      context.lineTo(x + widthValue, baseY);
+      context.closePath();
+      context.fillStyle = fill;
+      context.strokeStyle = stroke;
+      context.lineWidth = 3;
+      context.fill();
+      context.stroke();
+    }
+
+    function draw(now) {
+      context.fillStyle = hackerMode ? "#03110a" : hardRoute ? "#10070b" : "#050711";
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = "rgba(230,246,255,.035)";
+      context.font = `900 ${Math.min(112, width / 7)}px Courier New`;
+      context.textAlign = "center";
+      context.fillText(`SECTOR ${String(Math.floor(worldX / 3400) + 1).padStart(2, "0")}`, width / 2, height * .42);
+      context.strokeStyle = "rgba(81,209,255,.1)";
+      for (let x = -(worldX % 40); x < width; x += 40) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x, ground); context.stroke(); }
+      for (let y = 0; y < ground; y += 40) { context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke(); }
+      context.fillStyle = "#152339";
+      context.fillRect(0, ground, width, height - ground);
+      context.fillStyle = "#51d1ff";
+      context.fillRect(0, ground, width, 3);
+      context.fillStyle = "rgba(81,209,255,.32)";
+      for (let x = -(worldX % 90); x < width + 90; x += 90) {
+        context.beginPath(); context.moveTo(x, ground + 29); context.lineTo(x + 18, ground + 38); context.lineTo(x, ground + 47); context.lineTo(x + 7, ground + 38); context.closePath(); context.fill();
+      }
+
+      pits.forEach((pit) => { const x = pit.x - worldX; context.fillStyle = "#020207"; context.fillRect(x, ground - 2, pit.width, height - ground + 2); });
+      platforms.forEach((platform) => { const x = platform.x - worldX; const y = ground - platform.elevation; context.fillStyle = "#123b4c"; context.fillRect(x, y, platform.width, 18); context.strokeStyle = "#51d1ff"; context.strokeRect(x, y, platform.width, 18); context.fillStyle = "rgba(81,209,255,.35)"; for (let stripe = 8; stripe < platform.width; stripe += 22) context.fillRect(x + stripe, y + 5, 10, 8); });
+      [...spikes, ...(hardRoute ? hardSpikes : [])].forEach((spike) => {
+        const x = spike.x - worldX;
+        const count = Math.max(1, Math.round(spike.width / 38));
+        const spikeWidth = spike.width / count;
+        for (let i = 0; i < count; i += 1) triangle(x + i * spikeWidth, ground, spikeWidth, spike.height, "rgba(255, 75, 111, .82)", "#ff4b6f");
+      });
+      trollSpikes.forEach((spike) => {
+        const x = spike.x - worldX;
+        const lift = spike.raised ? 88 : 0;
+        triangle(x, ground - lift, 42, 62, "rgba(81, 209, 255, .72)", "#51d1ff");
+      });
+      yellowSpikes.forEach((position) => triangle(position - worldX, ground, 42, 44, "rgba(255, 200, 87, .78)", "#ffc857"));
+
+      pads.forEach((pad) => {
+        const x = pad.x - worldX;
+        const color = !pad.enabled ? "#3e4650" : pad.kind === "fault" ? "#ff4fc8" : pad.kind === "lift" ? "#51d1ff" : "#ffc857";
+        context.fillStyle = color;
+        context.shadowColor = color; context.shadowBlur = pad.enabled ? 12 : 0;
+        context.beginPath(); context.moveTo(x - 25, ground); context.lineTo(x - 15, ground - 12); context.lineTo(x + 15, ground - 12); context.lineTo(x + 25, ground); context.closePath(); context.fill(); context.shadowBlur = 0;
+        context.fillStyle = color;
+        context.font = "700 9px Courier New";
+        context.textAlign = "center";
+        context.fillText(pad.kind.toUpperCase(), x, ground - 17);
+      });
+      doors.forEach((door) => {
+        const x = door.x - worldX;
+        context.strokeStyle = door.open ? "#7ef29a" : "#ff4b6f";
+        context.fillStyle = door.open ? "rgba(126,242,154,.1)" : "rgba(255,75,111,.58)";
+        context.lineWidth = 3;
+        context.strokeRect(x, ground - 150, 28, 150);
+        if (!door.open) context.fillRect(x + 4, ground - 146, 20, 146);
+        context.fillStyle = door.open ? "#7ef29a" : "#ff4b6f";
+        context.font = "700 10px Courier New";
+        context.textAlign = "center";
+        context.fillText(door.open ? "OPEN" : "LOCK", x + 14, ground - 159);
+      });
+      buttons.forEach((button) => { const x = button.x - worldX; const color = button.type === "hacker" ? "#39ff88" : button.type === "pad" ? "#51d1ff" : "#ffc857"; context.fillStyle = button.used ? "#39424a" : color; context.fillRect(x - 16, ground - 18, 32, 18); context.fillStyle = "#07121f"; context.font = "900 10px Courier New"; context.textAlign = "center"; context.fillText(button.type === "hacker" ? "H" : "■", x, ground - 5); });
+
+      checkpoints.forEach((plus) => {
+        if (plus.collected) return;
+        const x = plus.x - worldX;
+        const centerY = plus.kind === "hard" ? ground - 118 : ground - 52;
+        const color = plus.kind === "hard" ? "#ff405f" : "#7ef29a";
+        context.save(); context.translate(x, centerY); context.rotate(now / 700); context.fillStyle = color; context.shadowColor = color; context.shadowBlur = 18; context.fillRect(-6, -24, 12, 48); context.fillRect(-24, -6, 48, 12); context.restore();
+        context.fillStyle = color; context.font = "700 9px Courier New"; context.textAlign = "center"; context.fillText(plus.kind === "hard" ? "HARD" : "CHECKPOINT", x, centerY - 35);
+      });
+      trollPluses.forEach((position) => {
+        const x = position - worldX;
+        const centerY = ground - 118;
+        context.save(); context.translate(x, centerY); context.rotate(-now / 620); context.fillStyle = "#3f8cff"; context.shadowColor = "#3f8cff"; context.shadowBlur = 18; context.fillRect(-6, -24, 12, 48); context.fillRect(-24, -6, 48, 12); context.restore();
+        context.fillStyle = "#3f8cff"; context.font = "700 9px Courier New"; context.textAlign = "center"; context.fillText("TROLL", x, centerY - 35);
+      });
+      if (hackerMode) hackerHazards.forEach((position) => { const x = position - worldX; context.fillStyle = now % 260 < 130 ? "#39ff88" : "#0c4b2a"; context.fillRect(x, ground - 62, 18, 62); });
+
+      const portalX = levelEnd - worldX;
+      context.strokeStyle = "#7ef29a";
+      context.lineWidth = 7;
+      context.beginPath(); context.ellipse(portalX, ground - 65, 32, 58, 0, 0, Math.PI * 2); context.stroke();
+      context.save();
+      context.translate(player.x + player.size / 2, player.y + player.size / 2);
+      context.rotate(worldX / 80);
+      context.fillStyle = now < invulnerableUntil ? "rgba(230,246,255,.45)" : "#e6f6ff";
+      context.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+      context.strokeStyle = hackerMode ? "#39ff88" : "#51d1ff"; context.strokeRect(-player.size / 2 + 3, -player.size / 2 + 3, player.size - 6, player.size - 6);
+      context.restore();
+      context.textAlign = "start";
+    }
+
+    function overlapsAt(position, widthValue = 38) {
+      const playerWorld = worldX + player.x;
+      return playerWorld + player.size - 6 > position && playerWorld + 6 < position + widthValue;
+    }
+
+    function hitsPlus(position, kind) {
+      const playerWorld = worldX + player.x;
+      const centerY = kind === "green" ? ground - 52 : ground - 118;
+      return playerWorld + player.size > position - 25
+        && playerWorld < position + 25
+        && player.y + player.size > centerY - 25
+        && player.y < centerY + 25;
+    }
+
+    function update(now) {
+      if (!running || finished) return;
+      const delta = Math.min(.034, (now - previousTime) / 1000);
+      previousTime = now;
+      worldX += 242 * delta;
+      player.velocityY += 1850 * delta;
+      const previousBottom = player.y + player.size;
+      player.y += player.velocityY * delta;
+      player.grounded = false;
+      const playerWorld = worldX + player.x;
+      const foot = playerWorld + player.size / 2;
+      const overPit = pits.some((pit) => foot > pit.x && foot < pit.x + pit.width);
+      let landed = false;
+      if (player.velocityY >= 0) platforms.forEach((platform) => {
+        const top = ground - platform.elevation;
+        if (!landed && playerWorld + player.size > platform.x && playerWorld < platform.x + platform.width && previousBottom <= top + 4 && player.y + player.size >= top) {
+          player.y = top - player.size; player.velocityY = 0; player.grounded = true; landed = true;
+        }
+      });
+      if (!landed && !overPit && player.y + player.size >= ground) { player.y = ground - player.size; player.velocityY = 0; player.grounded = true; }
+      if (player.y > height + 60) { respawn(now); draw(now); frameId = requestAnimationFrame(update); return; }
+
+      pads.forEach((pad) => { if (pad.enabled && !pad.used && Math.abs(playerWorld - pad.x) < 30 && player.y + player.size >= ground - 4) { pad.used = true; player.velocityY = pad.power; player.grounded = false; } });
+      buttons.forEach((button) => { if (button.used || !overlapsAt(button.x, 32) || player.y + player.size < ground - 25) return; button.used = true; if (button.type === "door") doors[button.target].open = !doors[button.target].open; if (button.type === "pad") pads[button.target].enabled = !pads[button.target].enabled; if (button.type === "hacker") hackerMode = true; });
+      trollSpikes.forEach((spike) => { if (playerWorld > spike.x - 170) spike.raised = true; });
+      yellowSpikes.forEach((position) => {
+        if (
+          overlapsAt(position + 7, 28)
+          && player.y + player.size > ground - 35
+          && player.y < ground
+        ) hardRoute = true;
+      });
+
+      let died = false;
+      if (now >= invulnerableUntil) {
+        const activeSpikes = [...spikes, ...(hardRoute ? hardSpikes : [])];
+        died = activeSpikes.some((spike) => overlapsAt(spike.x, spike.width) && player.y + player.size > ground - spike.height + 8);
+        died ||= trollSpikes.some((spike) => spike.raised
+          && overlapsAt(spike.x + 8, 26)
+          && player.y + player.size > ground - 150
+          && player.y < ground - 88);
+        died ||= trollPluses.some((position) => hitsPlus(position, "troll"));
+        died ||= doors.some((door) => !door.open && overlapsAt(door.x, 22));
+        died ||= hackerMode && hackerHazards.some((position) => overlapsAt(position, 18) && player.y + player.size > ground - 62);
+      }
+      if (died) { respawn(now); draw(now); frameId = requestAnimationFrame(update); return; }
+
+      checkpoints.forEach((plus) => {
+        if (plus.collected || !hitsPlus(plus.x, plus.kind)) return;
+        plus.collected = true;
+        checkpointCount += 1;
+        checkpointX = Math.max(0, plus.x - player.x + 60);
+        if (plus.kind === "hard") hardRoute = true;
+        mp2VirusScore.textContent = String(checkpointCount);
+      });
+      const elapsed = Math.floor((now - startedAt) / 1000);
+      mp2VirusTimer.textContent = `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`;
+      mp2VirusProgress.style.width = `${Math.min(100, playerWorld / levelEnd * 100)}%`;
+      mp2VirusObjective.textContent = hackerMode ? "HACKER FEATURES ACTIVE // REACH PORTAL" : hardRoute ? "HARD ROUTE ACTIVE // REACH PORTAL" : "REACH THE EXIT PORTAL";
+      if (playerWorld >= levelEnd) {
+        finished = true; running = false; cancelAnimationFrame(frameId);
+        try { localStorage.setItem("hackulean_mp2_puzzle_05_runner_complete", "1"); } catch (_error) {}
+        message("RUN COMPLETE", 900);
+        window.setTimeout(() => mp2VirusRunner.classList.add("hidden"), 950);
+        window.removeEventListener("keydown", jump);
+        window.removeEventListener("resize", resize);
+        mp2VirusCanvas.removeEventListener("pointerdown", jump);
+        return;
+      }
+      draw(now);
+      frameId = requestAnimationFrame(update);
+    }
+
+    resize();
+    worldX = 0;
+    checkpointX = 0;
+    checkpointCount = 0;
+    hardRoute = false;
+    hackerMode = false;
+    mp2VirusTimer.textContent = "00:00";
+    mp2VirusScore.textContent = "0";
+    mp2VirusProgress.style.width = "0";
+    draw(performance.now());
+    mp2VirusBegin.onclick = () => {
+      mp2VirusBegin.onclick = null;
+      mp2VirusGuide.classList.add("hidden");
+      previousTime = performance.now();
+      startedAt = previousTime;
+      running = true;
+      window.addEventListener("keydown", jump);
+      window.addEventListener("resize", resize);
+      mp2VirusCanvas.addEventListener("pointerdown", jump);
+      frameId = requestAnimationFrame(update);
+    };
+  }
 
   repairButton.addEventListener("click", async () => {
     const collectionError = currentCollection === "QUARANTINE"
@@ -480,6 +888,57 @@
     await wait(prefersReducedMotion ? 20 : 400);
     remountTerminal.classList.add("hidden");
     remountTerminal.classList.remove("is-closing");
+  }
+
+  async function runMp2VirusCleanup() {
+    databaseViewer.classList.add("operation-active");
+    await runTerminalSession(remountOperations, "REMOUNT COMPLETE // archive is read-write");
+    isReadWriteSession = true;
+    try { localStorage.setItem(READ_WRITE_SESSION_KEY, "1"); } catch (_error) {}
+    readOnlyStatus.textContent = "READ-WRITE SESSION";
+    readOnlyStatus.classList.add("is-read-write");
+
+    const clearVirusOperations = [
+      {
+        command: "dbviewer virus-scan --collection normal --enumerate",
+        output: ["loading infected record map...", "virus signatures matched", "cleanup manifest generated"],
+      },
+      {
+        command: "dbviewer cleanse-virus --restore-integrity --all",
+        output: ["removing hostile payload bodies...", "reconstructing normalized record headers", "integrity values restored"],
+      },
+      {
+        command: "dbviewer-index --commit --verify",
+        output: ["writing clean collection index", "shared record map synchronized", "no virus signatures detected"],
+      },
+    ];
+    await runTerminalSession(clearVirusOperations, "VIRUS CLEANUP COMPLETE // closing local TTY");
+
+    const recoveredTypes = ["USER", "ROUTE", "ASSET", "INDEX", "SESSION", "MEDIA", "AUDIT"];
+    let recoveredIndex = 0;
+    Object.keys(recordsByCollection).forEach((collection) => {
+      recordsByCollection[collection] = recordsByCollection[collection].map((record) => {
+        if (record[1] !== "VIRUS") return record;
+        const cleanRecord = [...record];
+        cleanRecord[0] = cleanRecord[0].replace(/^VX-/, "NM-");
+        cleanRecord[1] = recoveredTypes[recoveredIndex % recoveredTypes.length];
+        cleanRecord[2] = 85 + Math.floor(Math.random() * 16);
+        cleanRecord[3] = String(1 + recoveredIndex % 5).padStart(2, "0");
+        cleanRecord[4] = "SYSTEM";
+        cleanRecord[5] = "OPEN";
+        cleanRecord[6] = "JUST NOW";
+        recoveredIndex += 1;
+        return cleanRecord;
+      });
+    });
+    saveRecordState();
+    renderCollection(currentCollection);
+    databaseViewer.classList.remove("operation-active");
+    mp2VirusRebootReady = true;
+    mp2VirusCountConfirm.disabled = false;
+    rebootButton.classList.add("update-ready", "mp2-reboot-ready");
+    rebootButton.textContent = "Reboot to Complete";
+    try { localStorage.setItem("hackulean_mp2_puzzle_05_viruses_cleared", "1"); } catch (_error) {}
   }
 
   async function repairSelectedRecord() {
@@ -638,6 +1097,16 @@
   ];
 
   rebootButton.addEventListener("click", async () => {
+    let virusCleanupComplete = mp2VirusRebootReady;
+    try { virusCleanupComplete ||= localStorage.getItem("hackulean_mp2_puzzle_05_viruses_cleared") === "1"; } catch (_error) {}
+    if (window.HackuleanMP2State?.isActive() && virusCleanupComplete) {
+      rebootButton.disabled = true;
+      databaseViewer.classList.add("mp2-completion-collapse");
+      await wait(prefersReducedMotion ? 20 : 700);
+      databaseViewer.classList.add("hidden");
+      mp2VirusComplete.classList.remove("hidden");
+      return;
+    }
     const updateAvailable = partOneIsReady();
     rebootButton.disabled = true;
     window.clearTimeout(flashTimer);

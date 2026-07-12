@@ -160,8 +160,21 @@
         <p>PUZZLE 07 // STAGE 2 PART 03</p>
         <h2 id="part-two-complete-title">Part 03 Complete</h2>
         <p>You defeated the active hacker intrusion and restored command authority to the database viewer.</p>
-        <p class="next-part">Return to the puzzle root to continue Stage 2.</p>
+        <p class="next-part">Return to the puzzle root to unlock Metapuzzle 2.</p>
         <a id="complete-puzzle-button" href="/?signal=puzzle_completed&amp;puzzle=07-defeat-hackers">Back to Puzzle Root</a>
+      </div>
+    </section>
+
+    <section id="mp2-glitch-complete" class="mp2-glitch-complete hidden" aria-labelledby="mp2-glitch-complete-title">
+      <div>
+        <div class="mp2-completion-header"><strong>07</strong><p>SIGNAL RETURN // DESTINATION UNKNOWN</p></div>
+        <h2 id="mp2-glitch-complete-title">PUZZLE <span>COMPLETE_</span></h2>
+        <div class="mp2-completion-fragments">
+          <span><small>ROUTE</small>[NULL]</span>
+          <span><small>STATE</small>ACCEPTED</span>
+          <span><small>HANDOFF</small>UNRESOLVED</span>
+        </div>
+        <a href="/metapuzzle/2?signal=mp2_reset_puzzle_05">Back to Puzzle Root</a>
       </div>
     </section>
 
@@ -270,6 +283,8 @@
         // Fall through to the normal title screen when storage is unavailable.
       }
     </script>
+    <script src="../stage2/mp2-state.js"></script>
+    <script src="../metapuzzle-status.js"></script>
     <script src="../stage2/title-screen.js"></script>
     <script src="script.js"></script>
   </body>

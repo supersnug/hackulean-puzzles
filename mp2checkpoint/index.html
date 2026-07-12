@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#030b13" />
+    <title>Metapuzzle 2 Checkpoint - HacKulean Puzzles</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="grid" aria-hidden="true"></div>
+    <div id="screen-storm" class="screen-storm" aria-hidden="true">
+      <div class="puzzle-screen screen-database"><b>DATABASE VIEWER</b><span>RECOVERED</span><i></i><i></i><i></i></div>
+      <div class="puzzle-screen screen-memory"><b>MEMORY VIEWER</b><code>4A 2F ?? 8C<br />00 D7 31 EF<br />9B 20 C1 75</code></div>
+      <div class="puzzle-screen screen-recovery"><b>RECOVERY MODE</b><span>EMERGENCY SHELL</span><code>&gt;_</code></div>
+      <div class="puzzle-screen screen-integrity"><b>SYSTEM INTEGRITY</b><span>CORE SYSTEMS // OK</span><span>VIRUS SCANNER // ERROR</span></div>
+      <div class="puzzle-screen screen-terminal"><code>dbviewer-index --verify<br />sessionctl --elevate<br />ACCESS GRANTED</code></div>
+    </div>
+
+    <main id="checkpoint" class="checkpoint" aria-labelledby="checkpoint-title">
+      <div class="checkpoint-logo" aria-hidden="true"><span>MP</span><strong>2</strong></div>
+      <p class="eyebrow">SYSTEM CHECKPOINT // STAGE 2</p>
+      <h1 id="checkpoint-title">Metapuzzle 2</h1>
+      <p class="subtitle">Puzzles 05–07 have converged. Starting this session may alter their systems.</p>
+      <p id="prerequisite-status" class="status"><span aria-hidden="true"></span> Puzzles 05–07 verified</p>
+      <div class="actions">
+        <a class="button button-secondary" href="/">BACK TO PUZZLE ROOT</a>
+        <button id="start-button" class="button button-primary" type="button">START METAPUZZLE 2</button>
+      </div>
+      <p id="checkpoint-note" class="checkpoint-note" aria-live="polite"></p>
+    </main>
+
+    <section id="launch-sequence" class="launch-sequence" aria-label="Metapuzzle 2 initializing" aria-hidden="true">
+      <div class="mp2-letters" aria-label="MP2"><span>M</span><span>P</span><span>2</span></div>
+      <p>MERGING PUZZLE ENVIRONMENTS</p>
+      <div class="portal" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+    </section>
+    <section id="completed-view" class="checkpoint completed-view" hidden aria-labelledby="completed-title">
+      <div class="checkpoint-logo" aria-hidden="true"><strong>✓</strong></div>
+      <p class="eyebrow">METAPUZZLE SESSION // COMPLETE</p>
+      <h1 id="completed-title">Metapuzzle 2 Complete</h1>
+      <p class="timer-label">FINAL TIME</p>
+      <time id="final-time" class="final-time">00:00:00</time>
+      <div class="actions"><a class="button button-primary" href="/?signal=puzzle_completed&amp;puzzle=08-metapuzzle-2">Back to Puzzle Root</a></div>
+    </section>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -505,3 +505,17 @@ body.event-red-flash::before {
   .manager-tabs { overflow-x: auto; }
   .integrity-row { grid-template-columns: 1fr; }
 }
+.mp2-update-interrupted { color: #ff6683 !important; }
+.update-screen.mp2-update-crash { animation: mp2-update-crash 900ms steps(6, end) forwards; }
+.managedatabase-viewer.mp2-legacy .manager-tab:not(.active) { display: none; }
+.managedatabase-viewer.mp2-legacy .manager-tabs { grid-template-columns: 1fr; }
+.mp2-complete-battle { position: fixed; z-index: 6000; inset: 0; overflow: hidden; color: #e6f6ff; background: #03070d; font-family: "Courier New", monospace; }
+.mp2-battle-viewer { position: absolute; inset: 6%; padding: 30px; border: 1px solid #39ff88; background: repeating-linear-gradient(0deg, transparent 0 5px, rgba(57,255,136,.04) 5px 6px), rgba(3,17,10,.8); color: #39ff88; }
+.mp2-battle-viewer i { display: block; width: 70%; height: 14px; margin-top: 28px; background: rgba(57,255,136,.18); }
+.mp2-complete-buttons { position: absolute; inset: 0; }
+.mp2-complete-button { position: absolute; min-width: 138px; padding: 10px 13px; border: 2px solid currentColor; color: #ffc857; background: #151005; font: 800 .68rem "Courier New", monospace; cursor: pointer; }
+.mp2-complete-button.is-red { color: #ff4b6f; background: #24070e; }
+.mp2-complete-button.is-green { z-index: 3; color: #39ff88; background: #03110a; }
+.mp2-complete-button.is-blue { color: #51d1ff; background: #04131d; box-shadow: 0 0 30px rgba(81,209,255,.45); }
+.mp2-sword { position: absolute; width: 44px; height: 5px; background: #e6f6ff; transform-origin: center; transition: left 600ms linear, top 600ms linear; }
+@keyframes mp2-update-crash { 0% { transform: none; } 30% { transform: translate(-12px,4px); filter: contrast(2); } 60% { transform: translate(14px,-5px) scaleX(.92); } 100% { transform: scaleY(.02); opacity: 0; filter: brightness(4); } }

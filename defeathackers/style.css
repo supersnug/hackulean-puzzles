@@ -421,6 +421,19 @@ body.event-red-flash::before {
   text-shadow: 0 0 10px rgba(255, 75, 111, .5);
 }
 
+.mp2-deletion-layer {
+  position: fixed;
+  z-index: 2500;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mp2-deletion-layer i {
+  position: absolute;
+  display: block;
+  background: #020407;
+}
+
 .hacker-alert,
 .critical-exception,
 .recovery-screen {
@@ -431,6 +444,10 @@ body.event-red-flash::before {
   place-items: center;
   padding: 24px;
   font-family: "Courier New", monospace;
+}
+
+.recovery-screen.mp2-recovery-fade-in {
+  animation: mp2-recovery-fade-in 900ms ease-out both;
 }
 
 .hacker-alert {
@@ -554,6 +571,53 @@ body.event-red-flash::before {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 34px;
+}
+
+.recovery-buttons button.mp2-code-label {
+  text-transform: none;
+}
+
+.mp2-glitch-complete {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #e6f6ff;
+  background: #020407;
+  font-family: "Courier New", monospace;
+}
+
+.mp2-glitch-complete > div {
+  position: relative;
+  width: min(680px, 100%);
+  padding: clamp(30px, 7vw, 64px);
+  border: 1px solid #426c55;
+  border-left: 9px solid #7ef29a;
+  background: linear-gradient(112deg, rgba(126,242,154,.045), transparent 42%), #030a0d;
+  box-shadow: 18px 18px 0 #071319, -5px -5px 0 rgba(126,242,154,.12);
+  text-align: left;
+}
+
+.mp2-glitch-complete > div::before,
+.mp2-glitch-complete > div::after { content: ""; position: absolute; z-index: 2; height: 13px; background: #020407; }
+.mp2-glitch-complete > div::before { top: 28%; left: -18px; width: 42%; }
+.mp2-glitch-complete > div::after { right: -12px; bottom: 31%; width: 28%; }
+.mp2-completion-header { display: flex; align-items: center; gap: 16px; }
+.mp2-completion-header strong { padding: 8px 10px; color: #020806; background: #7ef29a; font-size: 1.1rem; }
+.mp2-glitch-complete p { margin: 0; color: #77998a; font-size: .65rem; letter-spacing: .17em; }
+.mp2-glitch-complete h2 { margin: 26px 0 30px; color: #426c55; font-size: clamp(2.8rem, 10vw, 6.4rem); line-height: .78; letter-spacing: -.07em; text-transform: uppercase; }
+.mp2-glitch-complete h2 span { display: block; margin-left: clamp(16px, 8vw, 72px); color: #dffff0; text-decoration: line-through 5px #030a0d; }
+.mp2-completion-fragments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 25px; }
+.mp2-completion-fragments span { min-height: 64px; padding: 11px; border: 1px solid #29483a; color: #7ef29a; background: rgba(126,242,154,.035); font-size: .78rem; }
+.mp2-completion-fragments span:nth-child(2) { transform: translateY(7px); }
+.mp2-completion-fragments small { display: block; margin-bottom: 8px; color: #587568; font-size: .55rem; letter-spacing: .15em; }
+.mp2-glitch-complete a { display: inline-block; padding: 13px 20px; border: 1px solid #7ef29a; color: #020806; background: #7ef29a; font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-decoration: none; text-transform: uppercase; }
+
+@media (max-width: 540px) {
+  .mp2-completion-fragments { grid-template-columns: 1fr; }
+  .mp2-completion-fragments span:nth-child(2) { transform: none; }
 }
 
 .recovery-buttons button {
@@ -849,6 +913,11 @@ body.event-red-flash::before {
 
 @keyframes virus-overwrite-flicker {
   50% { opacity: .42; transform: translateX(2px); }
+}
+
+@keyframes mp2-recovery-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes hacker-alert-pulse {

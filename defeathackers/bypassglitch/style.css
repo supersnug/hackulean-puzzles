@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+body { min-height: 100vh; margin: 0; display: grid; place-items: center; overflow: hidden; padding: 24px; color: #e6f6ff; background: #020407; font-family: "Courier New", monospace; }
+#bypass-screen { width: min(760px, 100%); padding: clamp(28px, 7vw, 64px); border: 1px solid #7ef29a; background: #030b13; box-shadow: -9px 0 rgba(81,209,255,.26), 9px 0 rgba(255,102,117,.26); text-align: center; animation: bypass-panel 140ms steps(2,end) infinite; }
+#bypass-screen p { color: #7ef29a; font-size: .7rem; letter-spacing: .2em; }
+#bypass-screen h1 { position: relative; margin: 20px 0; font-size: clamp(3rem, 12vw, 8rem); text-shadow: -5px 0 #51d1ff, 5px 0 #ff6675; }
+#bypass-screen h1::before, #bypass-screen h1::after { content: attr(data-text); position: absolute; inset: 0; overflow: hidden; }
+#bypass-screen h1::before { color: #51d1ff; clip-path: inset(15% 0 57%); transform: translateX(-8px); }
+#bypass-screen h1::after { color: #ff6675; clip-path: inset(62% 0 12%); transform: translateX(8px); }
+.glitch-track { height: 8px; margin: 28px 0; overflow: hidden; background: #101a22; }
+.glitch-track i { display: block; width: 0; height: 100%; background: #7ef29a; box-shadow: 0 0 18px #7ef29a; animation: bypass-progress 3.1s steps(17,end) forwards; }
+#bypass-screen code { color: #8eb7c8; }
+.fake-404 { color: #111; background: #fff; font-family: Arial, sans-serif; }
+.fake-404 main { width: min(620px, 100%); }
+.fake-404 h1 { margin: 0 0 14px; font-size: 2rem; }
+.fake-404 p { color: #555; }
+@keyframes bypass-progress { to { width: 100%; } }
+@keyframes bypass-panel { 50% { transform: translate(2px,-1px); filter: brightness(1.2); } }

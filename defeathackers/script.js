@@ -77,6 +77,7 @@
   const sorterScore = document.getElementById("sorter-score");
   const sorterMessage = document.getElementById("sorter-message");
   const partTwoComplete = document.getElementById("part-two-complete");
+  const mp2GlitchComplete = document.getElementById("mp2-glitch-complete");
   const completePuzzleButton = document.getElementById("complete-puzzle-button");
   const hackerAlert = document.getElementById("hacker-alert");
   const criticalException = document.getElementById("critical-exception");
@@ -115,6 +116,12 @@
   let virusSelectionMode = false;
   let hackerTakeoverTimer = 0;
   let hackerTakeoverStarted = false;
+  let mp2BrokenViewer = false;
+  let mp2CodeRecovery = false;
+  let mp2DeletionLayer = null;
+  let mp2DeletionRectangles = [];
+  let mp2FinalControl = null;
+  let mp2FinalRectangle = null;
   let spiderAttackStarted = false;
   let spiderAttackTimer = 0;
   let recoveryAutoAttackTimer = 0;
@@ -158,11 +165,112 @@
     VIRUS: ["!", "virus"],
   };
 
+  function splitDeletionRegion(rectangle) {
+    const horizontal = rectangle.width >= rectangle.height;
+    const length = horizontal ? rectangle.width : rectangle.height;
+    if (length < 180) return [rectangle];
+    const first = .25 + Math.random() * .16;
+    const second = .62 + Math.random() * .14;
+    const points = [0, first, second, 1];
+    return points.slice(0, -1).map((point, index) => {
+      const start = point * length;
+      const size = (points[index + 1] - point) * length;
+      return horizontal
+        ? { ...rectangle, left: rectangle.left + start, width: size }
+        : { ...rectangle, top: rectangle.top + start, height: size };
+    });
+  }
+
+  function initializeMp2Deletion() {
+    const controls = managerTabs.filter((tab) => !tab.classList.contains("active"));
+    mp2FinalControl = controls[Math.floor(Math.random() * controls.length)];
+    const bounds = mp2FinalControl.getBoundingClientRect();
+    const padding = 3;
+    mp2FinalRectangle = {
+      left: Math.max(0, bounds.left - padding),
+      top: Math.max(0, bounds.top - padding),
+      width: Math.min(innerWidth, bounds.right + padding) - Math.max(0, bounds.left - padding),
+      height: Math.min(innerHeight, bounds.bottom + padding) - Math.max(0, bounds.top - padding),
+    };
+
+    const tabsBounds = document.querySelector(".manager-tabs").getBoundingClientRect();
+    const preservedTabs = {
+      left: Math.max(0, tabsBounds.left - padding),
+      top: Math.max(0, tabsBounds.top - padding),
+      width: Math.min(innerWidth, tabsBounds.right + padding) - Math.max(0, tabsBounds.left - padding),
+      height: Math.min(innerHeight, tabsBounds.bottom + padding) - Math.max(0, tabsBounds.top - padding),
+    };
+    const regionsAround = (inner, outer) => {
+      const innerRight = inner.left + inner.width;
+      const innerBottom = inner.top + inner.height;
+      const outerRight = outer.left + outer.width;
+      const outerBottom = outer.top + outer.height;
+      return [
+        { left: outer.left, top: outer.top, width: outer.width, height: inner.top - outer.top },
+        { left: outer.left, top: innerBottom, width: outer.width, height: outerBottom - innerBottom },
+        { left: outer.left, top: inner.top, width: inner.left - outer.left, height: inner.height },
+        { left: innerRight, top: inner.top, width: outerRight - innerRight, height: inner.height },
+      ].filter((rectangle) => rectangle.width > 0 && rectangle.height > 0);
+    };
+
+    const viewport = { left: 0, top: 0, width: innerWidth, height: innerHeight };
+    const outsideTabRectangles = regionsAround(preservedTabs, viewport).flatMap(splitDeletionRegion);
+    for (let index = outsideTabRectangles.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [outsideTabRectangles[index], outsideTabRectangles[swapIndex]] = [outsideTabRectangles[swapIndex], outsideTabRectangles[index]];
+    }
+    const tabDeletionRectangles = regionsAround(mp2FinalRectangle, preservedTabs);
+    mp2DeletionRectangles = [...outsideTabRectangles, ...tabDeletionRectangles];
+    mp2DeletionLayer = document.createElement("div");
+    mp2DeletionLayer.className = "mp2-deletion-layer";
+    document.body.appendChild(mp2DeletionLayer);
+  }
+
+  function addMp2DeletionRectangle(rectangle) {
+    const block = document.createElement("i");
+    Object.assign(block.style, {
+      left: `${rectangle.left}px`,
+      top: `${rectangle.top}px`,
+      width: `${rectangle.width}px`,
+      height: `${rectangle.height}px`,
+    });
+    mp2DeletionLayer.appendChild(block);
+  }
+
+  function showMp2CodeRecovery() {
+    mp2CodeRecovery = true;
+    mp2BrokenViewer = false;
+    writeFlag(RECOVERY_KEY);
+    loadingScreen.hidden = true;
+    viewerIntro.classList.add("hidden");
+    document.body.classList.remove("defeathackers-loading");
+    databaseManager.classList.add("hidden");
+    recoveryScreen.classList.add("mp2-recovery-fade-in");
+    recoveryScreen.classList.remove("hidden");
+    recoveryButtons.forEach((button) => { button.disabled = false; });
+    recoveryShell.classList.add("hidden");
+    recoveryProgress.classList.add("hidden");
+    spiderField.replaceChildren();
+    mp2DeletionLayer?.remove();
+  }
+
+  function advanceMp2Deletion(clickedControl) {
+    if (!mp2BrokenViewer) return;
+    if (mp2DeletionRectangles.length) {
+      addMp2DeletionRectangle(mp2DeletionRectangles.shift());
+      return;
+    }
+    if (clickedControl !== mp2FinalControl) return;
+    addMp2DeletionRectangle(mp2FinalRectangle);
+    window.setTimeout(showMp2CodeRecovery, 2_000);
+  }
+
   const EVENT_COMPLETED_KEY = "hackulean_defeathackers_events_completed";
   const ACTIVE_EVENT_KEY = "hackulean_defeathackers_active_event";
   const DATA_DAMAGE_TRACKER_KEY = "hackulean_defeathackers_data_damage_completed";
   const NEW_DATA_TRACKER_KEY = "hackulean_defeathackers_new_data_found_completed";
   const COMPLETION_STORE_KEY = "hackulean_puzzle_completion_map";
+  const MP2_ACTIVE_KEY = "hackulean_metapuzzle_2_active";
   const ROOT_COMPLETION_SIGNAL = "puzzle_completed";
   const PUZZLE_ID = "07-defeat-hackers";
   const eventDefinitions = [
@@ -200,11 +308,15 @@
       values[1] = Math.floor(Math.random() * 0xffffffff);
     }
     const seed = Array.from(values, (value) => value.toString(16).padStart(8, "0")).join("");
-    try { localStorage.setItem(FRAGMENT_SEED_KEY, seed); } catch (_error) {}
+    if (!window.HackuleanMP2State?.isActive()) {
+      try { localStorage.setItem(FRAGMENT_SEED_KEY, seed); } catch (_error) {}
+    }
     return seed;
   }
 
   function getSeed() {
+    const sharedSeed = window.HackuleanMP2State?.getSeed(generateSeed);
+    if (sharedSeed) return sharedSeed;
     try {
       return localStorage.getItem(FRAGMENT_SEED_KEY) || generateSeed();
     } catch (_error) {
@@ -256,12 +368,18 @@
   }
 
   function saveRecords() {
+    if (window.HackuleanMP2State?.isActive()) {
+      window.HackuleanMP2State.saveCollections("07", recordsByCollection);
+      return;
+    }
     try { localStorage.setItem(RECORD_STATE_KEY, JSON.stringify(recordsByCollection)); } catch (_error) {}
   }
 
   function restoreRecords() {
     try {
-      const saved = JSON.parse(localStorage.getItem(RECORD_STATE_KEY) || "null");
+      const saved = window.HackuleanMP2State?.isActive()
+        ? window.HackuleanMP2State.loadCollections("07")
+        : JSON.parse(localStorage.getItem(RECORD_STATE_KEY) || "null");
       if (!saved || typeof saved !== "object") return false;
       Object.keys(recordsByCollection).forEach((collection) => {
         if (Array.isArray(saved[collection])) recordsByCollection[collection] = saved[collection];
@@ -505,12 +623,41 @@
     devTerminalInput.focus();
   }
 
+  async function runMp2AutomaticDevSequence() {
+    loadingScreen.hidden = true;
+    viewerIntro.classList.add("hidden");
+    document.body.classList.remove("defeathackers-loading");
+    showManager(false);
+    writeFlag(DEV_TERMINAL_KEY);
+    devTerminalOutput.replaceChildren();
+    showDevTerminal(false);
+    devTerminal.classList.add("mp2-auto-terminal");
+    devTerminalInput.disabled = true;
+
+    for (const entry of devCommands) {
+      await wait(420);
+      appendDevLine(`> ${entry.command}`);
+      for (const line of entry.output) {
+        await wait(entry.instant ? 120 : 350);
+        appendDevLine(line, "ok");
+      }
+    }
+    writeFlag(DEV_COMMANDS_READY_KEY);
+    await wait(700);
+    appendDevLine("route override complete", "ok");
+    await wait(900);
+    devTerminal.classList.add("hidden");
+    databaseManager.classList.add("hidden");
+    mp2GlitchComplete.classList.remove("hidden");
+  }
+
   function scheduleHackerTakeover() {
     window.clearTimeout(hackerTakeoverTimer);
     if (readFlag(RECOVERY_KEY) || readFlag(SPIDERS_DEFEATED_KEY) || readFlag(HACKERS_DEFEATED_KEY) || hackerTakeoverStarted) return;
+    const takeoverDelay = readFlag(MP2_ACTIVE_KEY) ? 5_000 : 15_000;
     hackerTakeoverTimer = window.setTimeout(() => {
       void startHackerTakeover();
-    }, 15_000);
+    }, takeoverDelay);
   }
 
   function virusRecord(index) {
@@ -553,6 +700,12 @@
     saveRecords();
     await wait(900);
     hackerAlert.classList.add("hidden");
+    if (readFlag(MP2_ACTIVE_KEY)) {
+      mp2BrokenViewer = true;
+      document.body.classList.add("mp2-broken-viewer");
+      initializeMp2Deletion();
+      return;
+    }
     databaseManager.classList.add("hidden");
     criticalException.classList.remove("hidden");
     await wait(1800);
@@ -958,6 +1111,7 @@
       Object.assign(row.dataset, { record, type, integrity, fragments, owner, lock });
       const [rowMarker, rowMarkerClass] = type === "VIRUS" ? collectionMarkers.VIRUS : [marker, markerClass];
       row.classList.toggle("is-virus-candidate", type === "VIRUS");
+      row.classList.toggle("is-virus-overwrite", mp2BrokenViewer && type === "VIRUS");
       row.classList.toggle("is-event-selected", selectedEventRecordIds.has(record));
       row.innerHTML = `<span><i class="${rowMarkerClass}" aria-hidden="true">${rowMarker}</i> ${record}</span><span>${type}</span><span class="${integrityClass(integrity)}">${integrity}%</span><span>${modified}</span>`;
       row.addEventListener("click", () => selectRecord(row));
@@ -1097,8 +1251,12 @@
 
   collectionButtons.forEach((button) => {
     button.addEventListener("click", () => {
+      const switchedCollection = !button.classList.contains("active");
       collectionButtons.forEach((candidate) => candidate.classList.toggle("active", candidate === button));
       renderCollection(button.dataset.collection);
+      if (switchedCollection || (mp2BrokenViewer && button === mp2FinalControl && !mp2DeletionRectangles.length)) {
+        advanceMp2Deletion(button);
+      }
       if (readFlag(HACKERS_DEFEATED_KEY) && devUnlockStep === 3 && button.dataset.collection === "QUARANTINE") setDevUnlockStep(4);
       if (readFlag(HACKERS_DEFEATED_KEY) && devUnlockStep === 5 && button.dataset.collection === "NORMAL") setDevUnlockStep(6);
     });
@@ -1106,6 +1264,7 @@
 
   managerTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
+      const switchedTab = !tab.classList.contains("active");
       managerTabs.forEach((candidate) => candidate.classList.toggle("active", candidate === tab));
       managerPanels.forEach((panel) => panel.classList.toggle("active", panel.id === tab.dataset.panel));
       if (tab.dataset.panel === "memory-panel") {
@@ -1115,6 +1274,9 @@
       else {
         unfreezeMemory();
         stopMemoryStream();
+      }
+      if (switchedTab || (mp2BrokenViewer && tab === mp2FinalControl && !mp2DeletionRectangles.length)) {
+        advanceMp2Deletion(tab);
       }
     });
   });
@@ -2441,6 +2603,25 @@
     updateRebootButton.disabled = false;
   }
 
+  document.addEventListener("click", (event) => {
+    if (mp2CodeRecovery) {
+      const recoveryButton = event.target.closest("[data-recovery-button]");
+      if (!recoveryButton) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      recoveryButton.textContent = "vUgrAw7n";
+      recoveryButton.classList.add("mp2-code-label");
+      return;
+    }
+    if (!mp2BrokenViewer) return;
+    const button = event.target.closest("button");
+    if (!button || !databaseManager.contains(button)) return;
+    if (button.matches(".rail-button, .manager-tab, .record-row")) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+
   rebootButton.addEventListener("click", runRebootThenStartup);
   updateRebootButton.addEventListener("click", runRebootThenStartup);
   completePuzzleButton.addEventListener("click", () => {
@@ -2515,7 +2696,11 @@
   if (window.HackuleanStage2Title?.isBlocked()) {
     loadingScreen.hidden = true;
     document.body.classList.remove("defeathackers-loading");
-    if (readFlag(HACKERS_DEFEATED_KEY)) {
+    if (readFlag(MP2_ACTIVE_KEY) && readFlag(HACKERS_DEFEATED_KEY) && !readFlag(RECOVERY_KEY)) {
+      void runMp2AutomaticDevSequence();
+    } else if (readFlag(MP2_ACTIVE_KEY) && readFlag(RECOVERY_KEY)) {
+      showMp2CodeRecovery();
+    } else if (readFlag(HACKERS_DEFEATED_KEY)) {
       removeFlag(RECOVERY_KEY);
       showManager(false);
     } else {
