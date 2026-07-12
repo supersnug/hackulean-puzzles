@@ -1449,10 +1449,8 @@
       if (finished) return;
       finished = true; cancelAnimationFrame(frame);
       removeEventListener("resize", resize); damageCanvas.removeEventListener("pointermove", pointerMove); damageCanvas.removeEventListener("pointerdown", pointerDown);
-      startMp2CompletionBattle(() => {
-        damageGame.classList.add("hidden");
-        void launchMp2FinalGame();
-      });
+      const restartCompletionBattle = () => startMp2CompletionBattle(restartCompletionBattle);
+      startMp2CompletionBattle(restartCompletionBattle);
     }
     function update(now) {
       if (finished) return;
@@ -1708,10 +1706,8 @@
       damageCanvas.removeEventListener("pointermove", pointerMove);
       damageCanvas.removeEventListener("pointerdown", clickDamageGame);
       if (mp2Mode) {
-        startMp2CompletionBattle(() => {
-          damageGame.classList.add("hidden");
-          startDamageGame(true);
-        });
+        const restartCompletionBattle = () => startMp2CompletionBattle(restartCompletionBattle);
+        startMp2CompletionBattle(restartCompletionBattle);
         return;
       }
       damageGame.classList.add("hidden");

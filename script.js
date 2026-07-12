@@ -89,9 +89,11 @@ function applyCurrentStage(map) {
   const stage = document.getElementById("current-stage");
   const status = document.getElementById("stage-widget-status");
   const isStageTwo = Boolean(map["04-metapuzzle-1"]);
+  const isStageThree = Boolean(map["08-metapuzzle-2"]);
   let isMetapuzzleActive = false;
 
   document.body.classList.toggle("stage-two-active", isStageTwo);
+  document.body.classList.toggle("stage-three-active", isStageThree);
 
   try {
     isMetapuzzleActive =
@@ -115,10 +117,11 @@ function applyCurrentStage(map) {
     return;
   }
 
-  icon.textContent = isStageTwo ? "2" : "1";
-  stage.textContent = isStageTwo ? "STAGE 2" : "STAGE 1";
-  status.textContent = isStageTwo ? "NETWORK EXPANDED" : "INITIAL NETWORK";
-  widget.classList.toggle("stage-two", isStageTwo);
+  icon.textContent = isStageThree ? "3" : isStageTwo ? "2" : "1";
+  stage.textContent = isStageThree ? "STAGE 3" : isStageTwo ? "STAGE 2" : "STAGE 1";
+  status.textContent = isStageThree ? "MERGED NETWORK" : isStageTwo ? "NETWORK EXPANDED" : "INITIAL NETWORK";
+  widget.classList.toggle("stage-two", isStageTwo && !isStageThree);
+  widget.classList.toggle("stage-three", isStageThree);
 }
 
 function preventLockedNavigation(event) {
@@ -161,7 +164,22 @@ function showStageTwoReveal() {
   }, { once: true });
 }
 
-function initializeAmbientStageGrid() {
+function showStageThreeReveal() {
+  const reveal = document.getElementById("stage-three-reveal");
+  const continueButton = document.getElementById("stage-three-continue");
+  reveal.hidden = false;
+  document.body.classList.add("stage-three-boot");
+  continueButton.addEventListener("click", () => {
+    document.body.classList.add("stage-three-closing");
+    window.setTimeout(() => {
+      reveal.hidden = true;
+      document.body.classList.remove("stage-three-boot", "stage-three-closing");
+      document.body.classList.add("stage-three-arrived");
+    }, 550);
+  }, { once: true });
+}
+
+function initializeAmbientStageGrid(isStageThree = false) {
   const grid = document.getElementById("ambient-stage-grid");
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -188,18 +206,18 @@ function initializeAmbientStageGrid() {
 
   const lightCells = () => {
     if (!cells.length) return;
-    const count = Math.min(cells.length, 12 + Math.floor(Math.random() * 17));
+    const count = Math.min(cells.length, (isStageThree ? 30 : 12) + Math.floor(Math.random() * (isStageThree ? 35 : 17)));
     const indexes = new Set();
     while (indexes.size < count) indexes.add(Math.floor(Math.random() * cells.length));
 
     indexes.forEach((index) => {
       const cell = cells[index];
       cell.classList.remove("active");
-      cell.style.setProperty("--cell-duration", `${1100 + Math.random() * 1200}ms`);
+      cell.style.setProperty("--cell-duration", `${isStageThree ? 650 : 1100 + Math.random() * (isStageThree ? 650 : 1200)}ms`);
       void cell.offsetWidth;
       cell.classList.add("active");
     });
-    patternTimer = window.setTimeout(lightCells, 650 + Math.random() * 850);
+    patternTimer = window.setTimeout(lightCells, (isStageThree ? 260 : 650) + Math.random() * (isStageThree ? 420 : 850));
   };
 
   buildGrid();
@@ -219,8 +237,9 @@ const completionMap = readCompletionMap();
 applyCompletionStatus(completionMap);
 applyPrerequisiteLocks(completionMap);
 applyCurrentStage(completionMap);
-if (completionMap["04-metapuzzle-1"]) initializeAmbientStageGrid();
+if (completionMap["04-metapuzzle-1"]) initializeAmbientStageGrid(Boolean(completionMap["08-metapuzzle-2"]));
 if (completedPuzzleId === "04-metapuzzle-1") showStageTwoReveal();
+if (completedPuzzleId === "08-metapuzzle-2") showStageThreeReveal();
 document.addEventListener("click", preventLockedNavigation);
 
 const puzzleCards = document.querySelectorAll(".puzzle-card");

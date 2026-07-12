@@ -96,6 +96,7 @@
       && localStorage.getItem("hackulean_mp2_puzzle_05_viruses_cleared") === "1"
     ) {
       mp2VirusRebootReady = true;
+      document.body.appendChild(rebootButton);
       rebootButton.classList.add("mp2-reboot-ready");
       rebootButton.textContent = "Reboot to Complete";
     }
@@ -510,7 +511,7 @@
     ];
     const initialPadEnabled = pads.map((pad) => pad.enabled);
     const initialDoorOpen = doors.map((door) => door.open);
-    const hackerHazards = [11_750, 12_250, 13_100, 16_450, 16_850];
+    const hackerHazards = [12_250, 13_100, 16_450, 16_850];
     let width = 0;
     let height = 0;
     let ground = 0;
@@ -936,6 +937,7 @@
     databaseViewer.classList.remove("operation-active");
     mp2VirusRebootReady = true;
     mp2VirusCountConfirm.disabled = false;
+    document.body.appendChild(rebootButton);
     rebootButton.classList.add("update-ready", "mp2-reboot-ready");
     rebootButton.textContent = "Reboot to Complete";
     try { localStorage.setItem("hackulean_mp2_puzzle_05_viruses_cleared", "1"); } catch (_error) {}
@@ -1103,6 +1105,7 @@
       rebootButton.disabled = true;
       databaseViewer.classList.add("mp2-completion-collapse");
       await wait(prefersReducedMotion ? 20 : 700);
+      rebootButton.classList.add("hidden");
       databaseViewer.classList.add("hidden");
       mp2VirusComplete.classList.remove("hidden");
       return;
