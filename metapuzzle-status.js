@@ -1,21 +1,33 @@
 (() => {
-  if (window.HACKULEAN_SUPPRESS_MP1_STATUS) return;
+  const metapuzzles = [
+    {
+      number: 2,
+      activeKey: "hackulean_metapuzzle_2_active",
+      startedAtKey: "hackulean_metapuzzle_2_started_at",
+      accent: "#51d1ff",
+    },
+    {
+      number: 1,
+      activeKey: "hackulean_metapuzzle_1_active",
+      startedAtKey: "hackulean_metapuzzle_1_started_at",
+      accent: "#7ef29a",
+    },
+  ];
 
-  const ACTIVE_KEY = "hackulean_metapuzzle_1_active";
-  const STARTED_AT_KEY = "hackulean_metapuzzle_1_started_at";
-
-  function readStartTime() {
+  function readActiveMetapuzzle() {
     try {
-      if (localStorage.getItem(ACTIVE_KEY) !== "1") return 0;
+      const metapuzzle = metapuzzles.find(({ activeKey }) => localStorage.getItem(activeKey) === "1");
+      if (!metapuzzle) return null;
+      if (metapuzzle.number === 1 && window.HACKULEAN_SUPPRESS_MP1_STATUS) return null;
 
-      const stored = Number(localStorage.getItem(STARTED_AT_KEY));
-      if (Number.isFinite(stored) && stored > 0) return stored;
+      const stored = Number(localStorage.getItem(metapuzzle.startedAtKey));
+      if (Number.isFinite(stored) && stored > 0) return { ...metapuzzle, startTime: stored };
 
       const migratedStartTime = Date.now();
-      localStorage.setItem(STARTED_AT_KEY, String(migratedStartTime));
-      return migratedStartTime;
+      localStorage.setItem(metapuzzle.startedAtKey, String(migratedStartTime));
+      return { ...metapuzzle, startTime: migratedStartTime };
     } catch (_error) {
-      return 0;
+      return null;
     }
   }
 
@@ -29,15 +41,16 @@
       .join(":");
   }
 
-  function mountTimer(startTime) {
+  function mountTimer({ number, accent, startTime }) {
     const host = document.createElement("div");
-    host.id = "metapuzzle-one-status";
-    host.setAttribute("aria-label", "Metapuzzle 1 total elapsed time");
+    host.id = number === 1 ? "metapuzzle-one-status" : "metapuzzle-two-status";
+    host.setAttribute("aria-label", `Metapuzzle ${number} total elapsed time`);
     const shadow = host.attachShadow({ mode: "closed" });
 
     const style = document.createElement("style");
     style.textContent = `
       :host {
+        --timer-accent: ${accent};
         position: fixed;
         top: 14px;
         right: 14px;
@@ -48,18 +61,18 @@
       .timer {
         min-width: 150px;
         padding: 9px 12px;
-        border: 1px solid rgba(126, 242, 154, .72);
+        border: 1px solid var(--timer-accent);
         border-radius: 8px;
         color: #e6f6ff;
         background: rgba(3, 11, 19, .92);
-        box-shadow: 0 0 20px rgba(126, 242, 154, .16);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--timer-accent) 22%, transparent);
         backdrop-filter: blur(7px);
         text-align: right;
       }
       .label {
         display: block;
         margin-bottom: 3px;
-        color: #7ef29a;
+        color: var(--timer-accent);
         font-size: 9px;
         letter-spacing: .12em;
         white-space: nowrap;
@@ -68,7 +81,7 @@
         font-size: 16px;
         font-weight: 700;
         letter-spacing: .08em;
-        text-shadow: 0 0 10px rgba(126, 242, 154, .25);
+        text-shadow: 0 0 10px var(--timer-accent);
       }
       @media (max-width: 520px) {
         :host { top: 8px; right: 8px; }
@@ -80,7 +93,7 @@
 
     const timer = document.createElement("div");
     timer.className = "timer";
-    timer.innerHTML = '<span class="label">METAPUZZLE 1 // ACTIVE</span><time datetime="PT0S">00:00:00</time>';
+    timer.innerHTML = `<span class="label">METAPUZZLE ${number} // ACTIVE</span><time datetime="PT0S">00:00:00</time>`;
     const output = timer.querySelector("time");
     shadow.append(style, timer);
     document.body.appendChild(host);
@@ -97,12 +110,12 @@
     window.addEventListener("pagehide", () => window.clearInterval(interval), { once: true });
   }
 
-  const startTime = readStartTime();
-  if (startTime) {
+  const activeMetapuzzle = readActiveMetapuzzle();
+  if (activeMetapuzzle) {
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => mountTimer(startTime), { once: true });
+      document.addEventListener("DOMContentLoaded", () => mountTimer(activeMetapuzzle), { once: true });
     } else {
-      mountTimer(startTime);
+      mountTimer(activeMetapuzzle);
     }
   }
 })();

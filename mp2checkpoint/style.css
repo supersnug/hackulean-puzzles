@@ -1,0 +1,151 @@
+:root {
+  --background: #030b13;
+  --panel: rgba(4, 17, 29, .94);
+  --accent: #7ef29a;
+  --cyan: #51d1ff;
+  --text: #e6f6ff;
+  --muted: #8eb7c8;
+  --danger: #ff6675;
+  --warning: #ffd166;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 24px;
+  color: var(--text);
+  font-family: "Courier New", Courier, monospace;
+  background: radial-gradient(circle at 50% 42%, rgba(126, 242, 154, .12), transparent 30%), var(--background);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.025) 4px 5px);
+}
+
+.grid {
+  position: fixed;
+  inset: -20%;
+  background-image: linear-gradient(rgba(126,242,154,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(126,242,154,.09) 1px, transparent 1px);
+  background-size: 38px 38px;
+  transform: perspective(650px) rotateX(58deg) translateY(15%);
+  mask-image: radial-gradient(circle, black 10%, transparent 70%);
+  animation: grid-drift 9s linear infinite;
+}
+
+.checkpoint {
+  position: relative;
+  z-index: 3;
+  width: min(720px, 100%);
+  padding: clamp(28px, 6vw, 54px);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  text-align: center;
+  background: var(--panel);
+  box-shadow: 0 0 54px rgba(126,242,154,.16), inset 0 0 45px rgba(81,209,255,.025);
+  transition: opacity .45s ease, transform .45s ease, filter .45s ease;
+}
+
+.checkpoint-logo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 116px;
+  height: 130px;
+  margin: 0 auto 27px;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  clip-path: polygon(50% 0, 100% 26%, 88% 82%, 50% 100%, 12% 82%, 0 26%);
+  background: rgba(7, 30, 26, .8);
+  filter: drop-shadow(0 0 17px rgba(126,242,154,.34));
+}
+
+.checkpoint-logo::before, .checkpoint-logo::after { content: ""; position: absolute; width: 2px; height: 75%; background: currentColor; opacity: .5; }
+.checkpoint-logo::before { transform: rotate(35deg); }
+.checkpoint-logo::after { transform: rotate(-35deg); }
+.checkpoint-logo span, .checkpoint-logo strong { position: relative; z-index: 1; line-height: .9; }
+.checkpoint-logo span { font-size: 1rem; letter-spacing: .18em; }
+.checkpoint-logo strong { font-size: 2.6rem; }
+.eyebrow { margin: 0 0 10px; color: var(--accent); font-size: .72rem; letter-spacing: .2em; }
+h1 { margin: 0; font-size: clamp(2.8rem, 9vw, 6rem); line-height: .95; letter-spacing: -.04em; text-transform: uppercase; }
+.subtitle { max-width: 560px; margin: 24px auto; color: var(--muted); line-height: 1.65; }
+.status { color: var(--accent); font-size: .78rem; letter-spacing: .1em; }
+.status span { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 11px currentColor; }
+.status.is-locked { color: var(--danger); }
+.actions { display: flex; gap: 12px; margin-top: 30px; }
+.button { flex: 1; padding: 14px 18px; border-radius: 3px; font: 700 .76rem/1.2 inherit; letter-spacing: .1em; text-decoration: none; cursor: pointer; }
+.button-secondary { border: 1px solid #477080; color: var(--text); background: rgba(71,112,128,.1); }
+.button-primary { border: 1px solid var(--accent); color: #03100a; background: var(--accent); box-shadow: 0 0 24px rgba(126,242,154,.18); }
+.button:hover, .button:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; filter: brightness(1.13); }
+.button:disabled { opacity: .48; cursor: not-allowed; }
+.checkpoint-note { min-height: 1.2em; margin: 15px 0 0; color: var(--warning); font-size: .76rem; }
+.timer-label { margin: 30px 0 8px; color: var(--muted); font-size: .68rem; letter-spacing: .18em; }
+.final-time { display: block; color: var(--accent); font-size: clamp(2.4rem, 9vw, 5rem); font-weight: 700; letter-spacing: .08em; }
+
+.screen-storm { position: fixed; z-index: 4; inset: 0; visibility: hidden; opacity: 0; background: #02070d; }
+.puzzle-screen { position: absolute; inset: 7%; display: grid; align-content: center; gap: 20px; padding: 8vw; border: 2px solid currentColor; color: var(--accent); background: #06131b; box-shadow: inset 0 0 80px rgba(126,242,154,.12); font-size: clamp(1rem, 3vw, 2.8rem); }
+.puzzle-screen b { font-size: clamp(2rem, 8vw, 7rem); }
+.puzzle-screen span, .puzzle-screen code { display: block; color: var(--text); }
+.puzzle-screen i { display: block; width: 70%; height: 16px; background: currentColor; opacity: .4; }
+.screen-memory { color: var(--cyan); background: #04131d; }
+.screen-recovery { color: var(--danger); background: #16070a; }
+.screen-integrity { color: var(--warning); background: #141006; }
+.screen-terminal { color: var(--accent); background: #010503; }
+
+.launch-sequence { position: fixed; z-index: 8; inset: 0; display: grid; place-items: center; visibility: hidden; pointer-events: none; }
+.launch-sequence > p { position: absolute; top: calc(50% + 105px); color: var(--muted); opacity: 0; font-size: .72rem; letter-spacing: .25em; animation: launch-copy 4.5s 1s forwards paused; }
+.mp2-letters { position: relative; z-index: 2; display: flex; gap: clamp(20px, 6vw, 70px); font-size: clamp(5rem, 23vw, 18rem); font-weight: 700; line-height: 1; -webkit-text-stroke: 3px #030b13; paint-order: stroke fill; text-shadow: 0 0 5px #030b13, 0 0 16px #030b13, 0 0 34px rgba(230,246,255,.7); }
+.mp2-letters span { opacity: 0; }
+.mp2-letters span:nth-child(1) { color: var(--text); animation: letter-appear .01s 1.2s forwards paused; }
+.mp2-letters span:nth-child(2) { color: var(--text); animation: letter-appear .01s 2.25s forwards paused; }
+.mp2-letters span:nth-child(3) { color: var(--text); animation: letter-appear .01s 3.3s forwards paused; }
+.portal { position: absolute; width: 30px; height: 30px; opacity: 0; border-radius: 50%; }
+.portal i { position: absolute; inset: -40px; border: 3px solid var(--accent); border-radius: 50%; box-shadow: 0 0 24px var(--accent), inset 0 0 24px var(--cyan); }
+.portal i:nth-child(2) { transform: rotateX(64deg) rotateZ(45deg); border-color: var(--cyan); }
+.portal i:nth-child(3) { transform: rotateY(65deg) rotateZ(-35deg); border-color: var(--danger); }
+.portal b { position: absolute; inset: -18px; border-radius: 50%; background: white; box-shadow: 0 0 55px 22px var(--cyan); }
+
+body.is-launching .checkpoint { opacity: 0; transform: scale(.92); filter: blur(8px); }
+body.is-launching .screen-storm { visibility: visible; animation: storm-background 5.2s steps(1, end) forwards; }
+body.is-launching .puzzle-screen { opacity: 0; animation: screen-flash 1s steps(1, end) infinite; }
+body.is-launching .puzzle-screen:nth-child(2) { animation-delay: .2s; }
+body.is-launching .puzzle-screen:nth-child(3) { animation-delay: .4s; }
+body.is-launching .puzzle-screen:nth-child(4) { animation-delay: .6s; }
+body.is-launching .puzzle-screen:nth-child(5) { animation-delay: .8s; }
+body.is-launching .launch-sequence { visibility: visible; }
+body.is-launching .launch-sequence > p,
+body.is-launching .mp2-letters span { animation-play-state: running; }
+body.portal-opening .screen-storm { opacity: 0; }
+body.portal-opening .mp2-letters { animation: letters-consumed 1.6s ease-in forwards; }
+body.portal-opening .portal { animation: portal-open 2s cubic-bezier(.2,.8,.2,1) forwards; }
+body.portal-opening .portal i { animation: portal-spin .7s linear infinite; }
+
+@keyframes grid-drift { to { background-position: 0 76px, 76px 0; } }
+@keyframes screen-flash { 0%, 19% { opacity: 1; } 20%, 100% { opacity: 0; } }
+@keyframes storm-background { 0% { opacity: 0; } 8%, 92% { opacity: .84; } 100% { opacity: 0; } }
+@keyframes letter-appear { to { opacity: 1; } }
+@keyframes launch-copy { 0%, 12% { opacity: 0; } 25%, 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes letters-consumed { to { transform: scale(.05) rotate(8deg); opacity: 0; filter: blur(10px); } }
+@keyframes portal-open { 0% { opacity: 0; transform: scale(.1); } 35% { opacity: 1; } 100% { opacity: 1; transform: scale(16); filter: brightness(4); } }
+@keyframes portal-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 560px) {
+  .actions { flex-direction: column; }
+  .puzzle-screen { inset: 12px; }
+  .launch-sequence > p { width: 90%; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid { animation: none; }
+  body.is-launching .puzzle-screen { animation-duration: 1.5s; }
+  .mp2-letters span { animation-duration: .01ms !important; }
+}

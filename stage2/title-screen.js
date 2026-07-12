@@ -33,6 +33,15 @@
     blockerKey: stageTwoTitleBlockerKey || null,
   });
 
+  try {
+    if (localStorage.getItem("hackulean_metapuzzle_2_active") === "1") {
+      document.body.classList.remove("stage-two-title-pending", "stage-two-title-open");
+      return;
+    }
+  } catch (_error) {
+    // Fall through to the normal title-screen behavior.
+  }
+
   if (!stageTwoNumber || !stageTwoTitle) return;
   if (readTitleBlocker(stageTwoTitleBlockerKey)) {
     document.body.classList.remove("stage-two-title-pending");

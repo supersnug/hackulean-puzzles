@@ -74,6 +74,10 @@
   const sorterMessage = document.getElementById("sorter-message");
   const partTwoComplete = document.getElementById("part-two-complete");
   const completePuzzleButton = document.getElementById("complete-puzzle-button");
+  const mp2CompleteBattle = document.getElementById("mp2-complete-battle");
+  const mp2CompleteButtons = document.getElementById("mp2-complete-buttons");
+  const mp2SwordLayer = document.getElementById("mp2-sword-layer");
+  const isMp2Active = () => window.HackuleanMP2State?.isActive() === true;
 
   let recordRows = [];
   let currentCollection = "NORMAL";
@@ -162,11 +166,15 @@
       values[1] = Math.floor(Math.random() * 0xffffffff);
     }
     const seed = Array.from(values, (value) => value.toString(16).padStart(8, "0")).join("");
-    try { localStorage.setItem(FRAGMENT_SEED_KEY, seed); } catch (_error) {}
+    if (!window.HackuleanMP2State?.isActive()) {
+      try { localStorage.setItem(FRAGMENT_SEED_KEY, seed); } catch (_error) {}
+    }
     return seed;
   }
 
   function getSeed() {
+    const sharedSeed = window.HackuleanMP2State?.getSeed(generateSeed);
+    if (sharedSeed) return sharedSeed;
     try {
       return localStorage.getItem(FRAGMENT_SEED_KEY) || generateSeed();
     } catch (_error) {
@@ -218,12 +226,18 @@
   }
 
   function saveRecords() {
+    if (window.HackuleanMP2State?.isActive()) {
+      window.HackuleanMP2State.saveCollections("06", recordsByCollection);
+      return;
+    }
     try { localStorage.setItem(RECORD_STATE_KEY, JSON.stringify(recordsByCollection)); } catch (_error) {}
   }
 
   function restoreRecords() {
     try {
-      const saved = JSON.parse(localStorage.getItem(RECORD_STATE_KEY) || "null");
+      const saved = window.HackuleanMP2State?.isActive()
+        ? window.HackuleanMP2State.loadCollections("06")
+        : JSON.parse(localStorage.getItem(RECORD_STATE_KEY) || "null");
       if (!saved || typeof saved !== "object") return false;
       Object.keys(recordsByCollection).forEach((collection) => {
         if (Array.isArray(saved[collection])) recordsByCollection[collection] = saved[collection];
@@ -675,8 +689,9 @@
       return;
     }
     eventStartTimer = window.setTimeout(() => {
-      void announceEvent(chooseEventDefinition(), 2000);
-    }, 60_000);
+      const event = isMp2Active() ? findEventDefinition("Memory Corruption") : chooseEventDefinition();
+      void announceEvent(event, 2000);
+    }, isMp2Active() ? 15_000 : 60_000);
   }
 
   function scheduleNextEvent() {
@@ -727,7 +742,12 @@
       eventLastTick = now;
       eventTimer.textContent = formatTimer(eventRemainingMs);
       if (eventRemainingMs <= 0) {
-        void resetActiveEvent("EVENT TIMER EXPIRED");
+        if (isMp2Active() && activeEvent?.name === "Memory Corruption") {
+          stopEventTimer();
+          void launchMp2FinalGame();
+        } else {
+          void resetActiveEvent("EVENT TIMER EXPIRED");
+        }
       }
     }, 250);
   }
@@ -1329,15 +1349,210 @@
     renderCollection("DAMAGED");
   }
 
-  function startDamageGame() {
+  async function launchMp2FinalGame() {
+    activeEvent = null;
+    stopEventTimer();
+    eventBanner.classList.add("hidden");
+    databaseManager.classList.add("event-red-flash");
+    await wait(700);
+    databaseManager.classList.remove("event-red-flash");
+    databaseManager.classList.add("hidden");
+    startDamageGame(true);
+    return;
+
     const context = damageCanvas.getContext("2d");
-    const random = seededRandom(hashSeed(`${getSeed()}|data-damage-game`));
+    const random = seededRandom(hashSeed(`${getSeed()}|mp2-final-game`));
+    let width = innerWidth;
+    let height = innerHeight;
+    let previous = performance.now();
+    let started = previous;
+    let frame = 0;
+    let stage = 0;
+    let hearts = 5;
+    let maxHearts = 5;
+    let hitUntil = 0;
+    let plus = null;
+    let bonusRemaining = 0;
+    let portal = null;
+    let jetClock = 0;
+    let slashClock = 0;
+    let slash = null;
+    let finished = false;
+    const cursor = { x: width / 2, y: height / 2 };
+    let xs = [];
+    let jetpacks = [];
+
+    function resize() {
+      const ratio = devicePixelRatio || 1;
+      width = innerWidth; height = innerHeight;
+      damageCanvas.width = Math.floor(width * ratio); damageCanvas.height = Math.floor(height * ratio);
+      damageCanvas.style.width = `${width}px`; damageCanvas.style.height = `${height}px`;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+    const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const randomPoint = () => ({ x: 110 + random() * Math.max(150, width - 220), y: 125 + random() * Math.max(120, height - 250) });
+    function makeXs() {
+      const count = 3 + Math.floor(Math.min(stage, 9) / 2);
+      xs = Array.from({ length: count }, (_, index) => ({ x: 60 + index * 75, y: 100 + index * 60 % Math.max(120, height - 180), speed: (stage >= 6 ? 155 : 120) + index * 8 }));
+    }
+    function spawnNextPlus() {
+      plus = { ...randomPoint(), kind: bonusRemaining ? "bonus" : stage + 1 === 10 ? "final" : "normal" };
+    }
+    function resetCheckpoint() {
+      hearts = maxHearts;
+      hitUntil = performance.now() + 900;
+      jetpacks = [];
+      slash = null;
+      makeXs();
+      damageMessage.textContent = "CHECKPOINT RESTORED";
+      damageMessage.classList.remove("hidden");
+      setTimeout(() => damageMessage.classList.add("hidden"), 650);
+    }
+    function takeDamage(amount) {
+      if (performance.now() < hitUntil || stage >= 10) return;
+      hearts -= amount; hitUntil = performance.now() + 550;
+      if (hearts <= 0) resetCheckpoint();
+    }
+    function collectPlus() {
+      if (!plus) return;
+      if (plus.kind === "bonus") {
+        bonusRemaining -= 1;
+        plus = null;
+        if (bonusRemaining) spawnNextPlus();
+        else spawnNextPlus();
+        return;
+      }
+      stage += 1;
+      plus = null;
+      if (stage === 6) makeXs();
+      if (stage === 9) { maxHearts = 10; hearts = 10; bonusRemaining = 3; }
+      if (stage === 10) { jetpacks = []; slash = null; }
+      else spawnNextPlus();
+    }
+    function spawnJetpack(kind) {
+      const start = random() < .5 ? { x: 0, y: random() * height } : { x: width, y: random() * height };
+      const angle = Math.atan2(cursor.y - start.y, cursor.x - start.x);
+      const speed = 340 * (stage >= 9 ? 2 : 1);
+      jetpacks.push({ ...start, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, kind });
+    }
+    function pointerMove(event) { cursor.x = event.clientX; cursor.y = event.clientY; }
+    function pointerDown() {
+      if (portal && distance(cursor, portal) < 45) { finishGame(); return; }
+      if (stage >= 10) {
+        const target = xs.find((x) => distance(cursor, x) < 25);
+        if (target) xs = xs.filter((x) => x !== target);
+        return;
+      }
+      if (plus && distance(cursor, plus) < 31) collectPlus();
+    }
+    function finishGame() {
+      if (finished) return;
+      finished = true; cancelAnimationFrame(frame);
+      removeEventListener("resize", resize); damageCanvas.removeEventListener("pointermove", pointerMove); damageCanvas.removeEventListener("pointerdown", pointerDown);
+      startMp2CompletionBattle(() => {
+        damageGame.classList.add("hidden");
+        void launchMp2FinalGame();
+      });
+    }
+    function update(now) {
+      if (finished) return;
+      let delta = Math.min(.033, (now - previous) / 1000); previous = now;
+      const speedMultiplier = stage >= 9 ? 2 : 1;
+      delta *= speedMultiplier;
+      xs.forEach((x) => {
+        const angle = Math.atan2(cursor.y - x.y, cursor.x - x.x) + (stage >= 10 ? Math.PI : 0);
+        x.x += Math.cos(angle) * x.speed * delta; x.y += Math.sin(angle) * x.speed * delta;
+        x.x = Math.max(18, Math.min(width - 18, x.x)); x.y = Math.max(80, Math.min(height - 18, x.y));
+        if (stage < 10 && distance(cursor, x) < 21) takeDamage(stage >= 6 ? 2 : 1);
+      });
+      if (stage >= 1 && stage < 10) {
+        jetClock += delta;
+        if (jetClock > 1.8) { jetClock = 0; spawnJetpack(stage >= 7 ? "green" : "blue"); spawnJetpack(stage >= 7 ? "red" : "yellow"); }
+      }
+      jetpacks.forEach((jet) => { jet.x += jet.vx * delta; jet.y += jet.vy * delta; if (distance(cursor, jet) < 18) takeDamage(stage >= 7 ? 1 : .5); });
+      jetpacks = jetpacks.filter((jet) => jet.x > -70 && jet.x < width + 70 && jet.y > -70 && jet.y < height + 70);
+      if (stage >= 5 && stage < 10) {
+        slashClock += delta;
+        if (slashClock > 3.2) { slashClock = 0; slash = { y: 90 + random() * (height - 180), until: now + 360 }; }
+        if (slash && now < slash.until && Math.abs(cursor.y - slash.y) < 12) takeDamage(stage >= 8 ? 1 : .5);
+        if (slash && now >= slash.until) slash = null;
+      }
+      if (stage >= 10 && !xs.length && !portal) portal = { x: width / 2, y: height / 2 };
+      draw(now);
+      frame = requestAnimationFrame(update);
+    }
+    function draw(now) {
+      context.fillStyle = stage >= 9 ? "#15060a" : "#050711"; context.fillRect(0, 0, width, height);
+      context.strokeStyle = "rgba(81,209,255,.1)";
+      for (let x = 0; x < width; x += 40) { context.beginPath(); context.moveTo(x,0); context.lineTo(x,height); context.stroke(); }
+      xs.forEach((x) => { context.strokeStyle = stage >= 6 ? "#ffc857" : "#ff6683"; context.lineWidth = 5; context.beginPath(); context.moveTo(x.x-10,x.y-10); context.lineTo(x.x+10,x.y+10); context.moveTo(x.x+10,x.y-10); context.lineTo(x.x-10,x.y+10); context.stroke(); });
+      jetpacks.forEach((jet) => { context.fillStyle = jet.kind === "red" ? "#ff4b6f" : jet.kind === "green" ? "#39ff88" : jet.kind === "yellow" ? "#ffc857" : "#51d1ff"; context.beginPath(); context.moveTo(jet.x+13,jet.y); context.lineTo(jet.x-10,jet.y-8); context.lineTo(jet.x-5,jet.y); context.lineTo(jet.x-10,jet.y+8); context.closePath(); context.fill(); });
+      if (slash) { context.strokeStyle = stage >= 8 ? "#ff4b6f" : "#ffc857"; context.lineWidth = 8; context.beginPath(); context.moveTo(0,slash.y); context.lineTo(width,slash.y-70); context.stroke(); }
+      if (plus) { const color = plus.kind === "bonus" ? "#ffc857" : "#7ef29a"; context.fillStyle = color; context.fillRect(plus.x-7,plus.y-25,14,50); context.fillRect(plus.x-25,plus.y-7,50,14); }
+      if (portal) { context.strokeStyle="#bf7cff"; context.lineWidth=8; context.beginPath(); context.ellipse(portal.x,portal.y,35,52,0,0,Math.PI*2); context.stroke(); }
+      context.fillStyle = now < hitUntil ? "rgba(230,246,255,.5)" : "#e6f6ff"; context.beginPath(); context.arc(cursor.x,cursor.y,8,0,Math.PI*2); context.fill();
+      damageHearts.textContent = `${"♥".repeat(Math.ceil(hearts))}`; damageScore.textContent = `${stage} / 10`; damageTimer.textContent = formatTimer(Math.max(0, 120_000 - (now-started)));
+    }
+    resize(); makeXs(); spawnNextPlus();
+    damageGame.classList.remove("hidden");
+    damageScore.textContent = "0 / 10"; damageHearts.textContent = "♥♥♥♥♥"; damageTimer.textContent = "02:00";
+    addEventListener("resize", resize); damageCanvas.addEventListener("pointermove", pointerMove); damageCanvas.addEventListener("pointerdown", pointerDown);
+    frame = requestAnimationFrame(update);
+  }
+
+  function startMp2CompletionBattle(resetGame) {
+    mp2CompleteBattle.classList.remove("hidden");
+    mp2CompleteButtons.replaceChildren(); mp2SwordLayer.replaceChildren();
+    const cursor = { x: innerWidth / 2, y: innerHeight / 2 };
+    const reds = [];
+    let chaseTimer = 0; let swordTimer = 0; let revealTimer = 0; let greenTimer = 0; let green = null; let resetAllowed = true; let resetting = false;
+    const moveCursor = (event) => { cursor.x = event.clientX; cursor.y = event.clientY; };
+    const cleanup = () => { clearInterval(chaseTimer); clearInterval(swordTimer); clearTimeout(revealTimer); clearTimeout(greenTimer); removeEventListener("pointermove",moveCursor); };
+    const resetBattle = () => {
+      if (resetting) return;
+      resetting = true;
+      cleanup();
+      mp2CompleteBattle.classList.add("hidden");
+      resetGame();
+    };
+    addEventListener("pointermove", moveCursor);
+    for (let index = 0; index < 14; index += 1) {
+      const button = document.createElement("button"); button.type="button"; button.className="mp2-complete-button"; button.textContent="COMPLETE PUZZLE";
+      button.style.left=`${5 + Math.random()*78}%`; button.style.top=`${8 + Math.random()*78}%`;
+      button.dataset.speed=String(25+Math.random()*85); mp2CompleteButtons.appendChild(button); reds.push(button);
+      button.addEventListener("click", () => { if (resetAllowed) resetBattle(); });
+    }
+    revealTimer = setTimeout(() => {
+      resetAllowed=false; reds.forEach((button)=>button.classList.add("is-red"));
+      chaseTimer=setInterval(()=>reds.forEach((button)=>{
+        if(!button.isConnected || resetting)return;
+        const rect=button.getBoundingClientRect();
+        const angle=Math.atan2(cursor.y-(rect.top+rect.height/2),cursor.x-(rect.left+rect.width/2));
+        const step=Number(button.dataset.speed)/20;
+        const left=Math.max(0,Math.min(innerWidth-150,rect.left+Math.cos(angle)*step));
+        const top=Math.max(0,Math.min(innerHeight-45,rect.top+Math.sin(angle)*step));
+        button.style.left=`${left}px`; button.style.top=`${top}px`;
+        if(cursor.x>=left && cursor.x<=left+rect.width && cursor.y>=top && cursor.y<=top+rect.height) resetBattle();
+      }),50);
+    },1000);
+    greenTimer = setTimeout(() => {
+      green=document.createElement("button"); green.type="button"; green.className="mp2-complete-button is-green"; green.textContent="COMPLETE PUZZLE"; green.style.left="45%"; green.style.top="45%"; mp2CompleteButtons.appendChild(green);
+      swordTimer=setInterval(()=>{ const target=reds.find((button)=>button.isConnected); if(!target){ clearInterval(swordTimer); green.classList.remove("is-green"); green.classList.add("is-blue"); green.addEventListener("click",()=>{ cleanup(); try{localStorage.setItem("hackulean_mp2_complete_ready","1");}catch(_error){} location.href="/mp2checkpoint"; },{once:true}); return; } const sword=document.createElement("i"); sword.className="mp2-sword"; const a=green.getBoundingClientRect(),b=target.getBoundingClientRect(); sword.style.left=`${a.left}px`; sword.style.top=`${a.top}px`; mp2SwordLayer.appendChild(sword); requestAnimationFrame(()=>{sword.style.left=`${b.left}px`;sword.style.top=`${b.top}px`;}); setTimeout(()=>{target.remove();sword.remove();},620); },700);
+    },60_000);
+  }
+
+  function startDamageGame(mp2Mode = false) {
+    const context = damageCanvas.getContext("2d");
+    const random = seededRandom(hashSeed(`${getSeed()}|data-damage-game${mp2Mode ? "|mp2" : ""}`));
+    const finalCount = mp2Mode ? 10 : 5;
     let width = window.innerWidth;
     let height = window.innerHeight;
     let previousTime = performance.now();
     let timeRemaining = 120_000;
     let hearts = 5;
+    let maxHearts = 5;
     let collected = 0;
+    let bonusCollected = 0;
     let hitCooldown = 0;
     let jetpackClock = 0;
     let yellowClock = 0;
@@ -1347,14 +1562,18 @@
     let yellowSpawnClock = 0;
     let finished = false;
     let portal = null;
-    let checkpoint = { timeRemaining: 120_000, collected: 0 };
+    let slashClock = 0;
+    let slash = null;
+    let checkpoint = { timeRemaining: 120_000, collected: 0, bonusCollected: 0, plusCount: 0 };
     const cursor = { x: width / 2, y: height / 2 };
-    const pluses = Array.from({ length: 5 }, (_, index) => ({
+    const pluses = Array.from({ length: mp2Mode ? 13 : 5 }, (_, index) => ({
       x: 110 + random() * Math.max(160, width - 220),
       y: 120 + random() * Math.max(120, height - 240),
       collected: false,
       index,
-      unlockAt: index * 24_000,
+      unlockAt: index * (mp2Mode ? 9_000 : 24_000),
+      bonus: mp2Mode && index >= 9 && index <= 11,
+      stage: mp2Mode ? (index < 9 ? index + 1 : index === 12 ? 10 : 9) : index + 1,
     }));
     let xs = [];
     let jetpacks = [];
@@ -1382,7 +1601,7 @@
     }
 
     function resetToCheckpoint(fullReset = false) {
-      hearts = 5;
+      hearts = maxHearts;
       hitCooldown = performance.now() + 900;
       jetpacks = [];
       yellowJetpacks = [];
@@ -1395,12 +1614,15 @@
       if (fullReset) {
         timeRemaining = 120_000;
         collected = 0;
-        checkpoint = { timeRemaining: 120_000, collected: 0 };
+        bonusCollected = 0;
+        maxHearts = 5;
+        checkpoint = { timeRemaining: 120_000, collected: 0, bonusCollected: 0, plusCount: 0 };
         pluses.forEach((plus) => { plus.collected = false; });
       } else {
         timeRemaining = checkpoint.timeRemaining;
         collected = checkpoint.collected;
-        pluses.forEach((plus, index) => { plus.collected = index < checkpoint.collected; });
+        bonusCollected = checkpoint.bonusCollected || 0;
+        pluses.forEach((plus, index) => { plus.collected = index < (checkpoint.plusCount || 0); });
       }
       makeXs(3 + Math.floor(collected / 2));
       damageMessage.textContent = fullReset ? "RECOVERY RESET" : "CHECKPOINT RESTORED";
@@ -1411,7 +1633,7 @@
     function updateHud() {
       damageTimer.textContent = formatTimer(timeRemaining);
       damageHearts.textContent = `${"♥".repeat(Math.floor(hearts))}${hearts % 1 ? "½" : ""}`;
-      damageScore.textContent = `${collected} / 5`;
+      damageScore.textContent = `${collected} / ${finalCount}`;
     }
 
     function pointerMove(event) {
@@ -1443,7 +1665,7 @@
 
     function damage(amount) {
       const now = performance.now();
-      if (now < hitCooldown || collected >= 5) return;
+      if (now < hitCooldown || collected >= finalCount) return;
       hearts -= amount;
       hitCooldown = now + 650;
       if (hearts <= 0) resetToCheckpoint(false);
@@ -1452,12 +1674,14 @@
     function collectPlus(plus) {
       if (120_000 - timeRemaining < plus.unlockAt) return;
       plus.collected = true;
-      collected += 1;
-      checkpoint = { timeRemaining, collected };
-      if (collected % 2 === 0 && collected < 5) {
+      if (plus.bonus) bonusCollected += 1;
+      else collected = plus.stage;
+      if (mp2Mode && collected === 9) { maxHearts = 10; hearts = 10; }
+      checkpoint = { timeRemaining, collected, bonusCollected, plusCount: pluses.filter((candidate) => candidate.collected).length };
+      if (!plus.bonus && collected % 2 === 0 && collected < finalCount) {
         xs.push({ x: width - 80, y: 90 + random() * (height - 180), speed: 128 + collected * 8, frozenUntil: 0, hollowUntil: 0 });
       }
-      if (collected === 5) {
+      if (collected === finalCount) {
         jetpacks = [];
         yellowJetpacks = [];
         yellowStaging = false;
@@ -1471,7 +1695,8 @@
         return;
       }
       const elapsed = 120_000 - timeRemaining;
-      const plus = pluses.find((candidate) => !candidate.collected && elapsed >= candidate.unlockAt && distance(cursor, candidate) < 30);
+      const nextPlus = pluses.find((candidate) => !candidate.collected);
+      const plus = nextPlus && elapsed >= nextPlus.unlockAt && distance(cursor, nextPlus) < 30 ? nextPlus : null;
       if (plus) collectPlus(plus);
     }
 
@@ -1482,6 +1707,13 @@
       window.removeEventListener("resize", resizeDamageGame);
       damageCanvas.removeEventListener("pointermove", pointerMove);
       damageCanvas.removeEventListener("pointerdown", clickDamageGame);
+      if (mp2Mode) {
+        startMp2CompletionBattle(() => {
+          damageGame.classList.add("hidden");
+          startDamageGame(true);
+        });
+        return;
+      }
       damageGame.classList.add("hidden");
       eventState.damageGameComplete = true;
       renderCollection("DAMAGED");
@@ -1489,11 +1721,12 @@
 
     function updateDamageGame(now) {
       if (finished) return;
-      const delta = Math.min(.033, (now - previousTime) / 1000);
+      let delta = Math.min(.033, (now - previousTime) / 1000);
       previousTime = now;
+      if (mp2Mode && collected >= 9) delta *= 2;
       timeRemaining -= delta * 1000;
       if (timeRemaining <= 0) resetToCheckpoint(true);
-      if (collected >= 1 && collected < 5) {
+      if (collected >= 1 && collected < finalCount) {
         jetpackClock += delta;
         if (jetpackClock > 2.3) {
           jetpackClock = 0;
@@ -1501,7 +1734,7 @@
           for (let index = 0; index < blueBurst; index += 1) jetpacks.push(spawnJetpack(false));
         }
       }
-      if (collected >= 2 && collected < 5) {
+      if (collected >= 2 && collected < finalCount) {
         yellowClock += delta;
         if (yellowClock > 5 && !yellowStaging) {
           yellowClock = 0;
@@ -1528,7 +1761,7 @@
 
       xs.forEach((x) => {
         if (now < x.frozenUntil) return;
-        const direction = collected >= 5 ? Math.atan2(x.y - cursor.y, x.x - cursor.x) : Math.atan2(cursor.y - x.y, cursor.x - x.x);
+        const direction = collected >= finalCount ? Math.atan2(x.y - cursor.y, x.x - cursor.x) : Math.atan2(cursor.y - x.y, cursor.x - x.x);
         x.x = Math.max(20, Math.min(width - 20, x.x + Math.cos(direction) * x.speed * delta));
         x.y = Math.max(90, Math.min(height - 20, x.y + Math.sin(direction) * x.speed * delta));
       });
@@ -1541,14 +1774,14 @@
 
       xs = xs.filter((x) => {
         if (distance(x, cursor) < 24) {
-          if (collected >= 5) return false;
-          damage(1);
+          if (collected >= finalCount) return false;
+          damage(mp2Mode && collected >= 6 ? 2 : 1);
         }
         return true;
       });
       [...jetpacks, ...yellowJetpacks].forEach((jetpack) => {
         const isFlying = !jetpack.yellow || jetpack.armed;
-        if (isFlying && distance(jetpack, cursor) < 20) damage(.5);
+        if (isFlying && distance(jetpack, cursor) < 20) damage(mp2Mode && collected >= 7 ? 1 : .5);
         if (collected < 4) xs.forEach((x) => {
           if (isFlying && distance(jetpack, x) < 24) {
             x.frozenUntil = now + 1000;
@@ -1556,7 +1789,16 @@
           }
         });
       });
-      if (collected >= 5 && !xs.length && !portal) portal = { x: width / 2, y: height / 2 };
+      if (mp2Mode && collected >= 5 && collected < finalCount) {
+        slashClock += delta;
+        if (slashClock > 3.1) {
+          slashClock = 0;
+          slash = { y: 80 + random() * (height - 160), activatesAt: now + 650, until: now + 1030 };
+        }
+        if (slash && now >= slash.activatesAt && now < slash.until && Math.abs(cursor.y - slash.y) < 11) damage(collected >= 8 ? 1 : .5);
+        if (slash && now >= slash.until) slash = null;
+      }
+      if (collected >= finalCount && !xs.length && !portal) portal = { x: width / 2, y: height / 2 };
 
       drawDamageGame(now);
       updateHud();
@@ -1579,7 +1821,7 @@
         context.rotate(now / 650);
         const isUnlocked = elapsed >= plus.unlockAt;
         context.globalAlpha = isUnlocked ? 1 : .25 + .15 * Math.sin(now / 130);
-        context.fillStyle = isUnlocked ? "#7ef29a" : "#8a9aa6";
+        context.fillStyle = plus.bonus ? "#ffc857" : isUnlocked ? "#7ef29a" : "#8a9aa6";
         context.shadowColor = context.fillStyle;
         context.shadowBlur = isUnlocked ? 18 : 6;
         context.fillRect(-6, -22, 12, 44);
@@ -1588,7 +1830,7 @@
         context.restore();
       });
       xs.forEach((x) => {
-        context.strokeStyle = now < x.hollowUntil ? "#ff91a5" : "#ff6683";
+        context.strokeStyle = mp2Mode && collected >= 6 ? "#ffc857" : now < x.hollowUntil ? "#ff91a5" : "#ff6683";
         context.lineWidth = now < x.hollowUntil ? 3 : 6;
         const wiggle = now < x.hollowUntil ? Math.sin(now / 45) * 4 : 0;
         context.beginPath();
@@ -1599,7 +1841,7 @@
         context.stroke();
       });
       [...jetpacks, ...yellowJetpacks].forEach((jetpack) => {
-        context.fillStyle = jetpack.yellow ? "#ffc857" : "#51d1ff";
+        context.fillStyle = mp2Mode && collected >= 7 ? (jetpack.yellow ? "#ff4b6f" : "#39ff88") : jetpack.yellow ? "#ffc857" : "#51d1ff";
         context.shadowColor = context.fillStyle;
         context.shadowBlur = 12;
         context.beginPath();
@@ -1611,6 +1853,16 @@
         context.fill();
         context.shadowBlur = 0;
       });
+      if (slash) {
+        const isWarning = now < slash.activatesAt;
+        context.save();
+        context.strokeStyle = collected >= 8 ? "#ff4b6f" : "#ffc857";
+        context.globalAlpha = isWarning ? .3 + Math.abs(Math.sin(now / 70)) * .35 : 1;
+        context.lineWidth = isWarning ? 2 : 8;
+        context.setLineDash(isWarning ? [14, 12] : []);
+        context.beginPath(); context.moveTo(0, slash.y); context.lineTo(width, slash.y - 65); context.stroke();
+        context.restore();
+      }
       if (portal) {
         context.strokeStyle = "#ffc857";
         context.lineWidth = 7;
@@ -1630,6 +1882,7 @@
     damageGame.classList.remove("hidden");
     resizeDamageGame();
     makeXs(3);
+    damageScore.textContent = `0 / ${finalCount}`;
     updateHud();
     window.addEventListener("resize", resizeDamageGame);
     damageCanvas.addEventListener("pointermove", pointerMove);
@@ -1845,6 +2098,12 @@
       databaseManager.classList.add("is-opening");
       window.setTimeout(() => databaseManager.classList.remove("is-opening"), 550);
     }
+    if (isMp2Active()) {
+      databaseManager.classList.add("mp2-legacy");
+      const normalButton = collectionButtons.find((button) => button.dataset.collection === "NORMAL");
+      if (normalButton) normalButton.lastChild.textContent = "Recovered";
+      activeCollection.textContent = currentCollection === "NORMAL" ? "RECOVERED" : currentCollection;
+    }
     if (document.getElementById("memory-panel").classList.contains("active")) startMemoryStream();
     scheduleFirstEvent();
   }
@@ -1898,9 +2157,11 @@
   startButton.addEventListener("click", () => {
     startButton.disabled = true;
     resetEventProgress();
-    generateSeed();
-    generateRecords();
-    saveRecords();
+    if (!isMp2Active()) {
+      generateSeed();
+      generateRecords();
+      saveRecords();
+    }
     try {
       localStorage.setItem(TITLE_BLOCKER_KEY, "1");
     } catch (_error) {}
@@ -1916,10 +2177,24 @@
     const startingProgress = Math.max(45, Math.min(55, Number(params.get("progress")) || 50));
     updateProgressFill.style.width = `${startingProgress}%`;
     updateProgressText.textContent = `${startingProgress}%`;
-    for (let progress = startingProgress + 1; progress <= 100; progress += 1) {
+    const endingProgress = isMp2Active() ? 63 : 100;
+    for (let progress = startingProgress + 1; progress <= endingProgress; progress += 1) {
       await wait(70);
       updateProgressFill.style.width = `${progress}%`;
       updateProgressText.textContent = `${progress}%`;
+    }
+    if (isMp2Active()) {
+      updateContinuation.querySelector("h2").textContent = "Update interrupted";
+      updateContinuation.querySelector("h2").classList.add("mp2-update-interrupted");
+      updateContinuation.querySelector(".update-panel > p:nth-of-type(2)").textContent = "Installation channel terminated unexpectedly. Reverting to Database Viewer 1.4.";
+      await wait(1800);
+      updateContinuation.classList.add("mp2-update-crash");
+      await wait(prefersReducedMotion ? 20 : 900);
+      updateContinuation.classList.add("hidden");
+      updateContinuation.classList.remove("mp2-update-crash");
+      viewerIntro.querySelector(".puzzle-number").textContent = "v1.4";
+      await runRebootThenStartup();
+      return;
     }
     updateRebootButton.classList.remove("hidden");
     const cleanUrl = `${window.location.pathname}`;

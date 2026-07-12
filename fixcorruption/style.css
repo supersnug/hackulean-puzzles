@@ -191,6 +191,11 @@ h1 span { color: var(--green); }
 .viewer-header-actions { display: flex; align-items: center; gap: 14px; }
 .reboot-button { padding: 8px 10px; border: 1px solid #49566a; color: #9eabba; background: #0c121e; font: 700 .58rem "Courier New", monospace; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
 .reboot-button.update-ready { border-color: #7ef29a; color: #7ef29a; animation: update-ready-flash 620ms ease-in-out infinite alternate; }
+.reboot-button.mp2-reboot-ready { position: fixed; z-index: 4000; top: 76px; right: 14px; padding: 13px 17px; border: 2px solid #39ff88; color: #03110a; background: #39ff88; box-shadow: 0 0 28px rgba(57,255,136,.42); font-size: .72rem; }
+
+@media (max-width: 520px) {
+  .reboot-button.mp2-reboot-ready { top: 64px; right: 8px; }
+}
 
 .viewer-workspace { display: grid; grid-template-columns: 170px minmax(0, 1fr) 260px; min-height: 640px; }
 .viewer-rail { display: flex; flex-direction: column; padding: 22px 12px; border-right: 1px solid rgba(182,161,255,.2); background: #090d17; }
@@ -269,6 +274,20 @@ h1 span { color: var(--green); }
 .fragment-dialog-header h2 { margin: 0; font-size: 1.05rem; text-transform: uppercase; }
 .fragment-dialog-header button { width: 34px; height: 34px; border: 1px solid #3d465b; color: #bdc8d7; background: #0d1320; font: 1.2rem/1 "Courier New", monospace; cursor: pointer; }
 .fragment-dialog-summary { margin: 0; padding: 12px 18px; color: #718093; border-bottom: 1px solid #202838; font-size: .6rem; letter-spacing: .07em; }
+.fragment-virus-alert { padding: 11px 18px; border-bottom: 1px solid #ff6683; color: #ffdce3; background: rgba(91, 12, 31, .72); font-size: .66rem; font-weight: 700; letter-spacing: .1em; }
+.fragment-virus-alert[hidden] { display: none; }
+.fragment-virus-alert:not([hidden]) { cursor: pointer; user-select: none; }
+.fragment-virus-alert.is-glitching { text-shadow: -4px 0 #51d1ff, 4px 0 #ff2647; transform: translateX(3px); filter: contrast(1.5); }
+.fragment-dialog.virus-runner-launch { animation: virus-runner-launch 700ms steps(5, end) forwards; }
+.mp2-virus-count-dialog { width: min(520px, calc(100% - 32px)); padding: 28px; border: 1px solid #ff6683; color: #e6f6ff; background: #070b12; box-shadow: 0 0 55px rgba(255,102,131,.2); font-family: "Courier New", monospace; text-align: center; }
+.mp2-virus-count-dialog::backdrop { background: rgba(1,4,9,.88); backdrop-filter: blur(5px); }
+.mp2-virus-count-dialog > p:first-child { margin: 0 0 8px; color: #ff6683; font-size: .58rem; letter-spacing: .15em; }
+.mp2-virus-count-dialog h2 { margin: 0; text-transform: uppercase; }
+.mp2-virus-count-dialog h2 + p { color: #8e9bac; font-size: .72rem; line-height: 1.6; }
+#mp2-virus-count { display: block; margin: 20px 0 12px; color: #7ef29a; font-size: 4rem; font-weight: 900; }
+#mp2-virus-count-plus { width: 72px; height: 58px; border: 1px solid #7ef29a; color: #07120b; background: #7ef29a; font: 900 2rem "Courier New", monospace; cursor: pointer; }
+#mp2-virus-count-confirm { display: block; width: 100%; margin-top: 14px; padding: 12px; border: 1px solid #ff6683; color: #ffdce3; background: rgba(76,12,27,.55); font: 700 .7rem "Courier New", monospace; cursor: pointer; }
+.mp2-virus-count-error { min-height: 1.2em; margin: 12px 0 0; color: #ff6683; font-size: .65rem; }
 .fragment-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; padding: 18px; overflow-y: auto; }
 .fragment-block { min-width: 0; padding: 10px; border: 1px solid #334055; background: #0b111d; }
 .fragment-block span, .fragment-block small { display: block; color: #657285; font-size: .52rem; letter-spacing: .07em; }
@@ -327,6 +346,20 @@ h1 span { color: var(--green); }
 .resolver-game { position: fixed; z-index: 2000; inset: 0; overflow: hidden; color: #eef7ff; background: #050711; font-family: "Courier New", monospace; }
 .resolver-game.is-exiting { animation: resolver-game-exit 650ms ease forwards; }
 #resolver-canvas { display: block; width: 100%; height: 100%; }
+#mp2-virus-canvas { display: block; width: 100%; height: 100%; }
+.mp2-virus-runner { z-index: 3100; }
+.mp2-runner-legend .hard-plus { color: #fff; background: #ff405f; }
+.mp2-runner-legend .troll-plus { color: #fff; background: #3f8cff; }
+.mp2-runner-legend .door-icon { border: 2px solid #ffc857; background: rgba(255,200,87,.15); }
+.mp2-runner-legend .hacker-icon { color: #39ff88; border: 1px solid #39ff88; background: rgba(57,255,136,.08); }
+.mp2-virus-complete { position: fixed; z-index: 5000; inset: 0; display: grid; place-items: center; padding: 24px; color: #dffff0; background: #020806; font-family: "Courier New", monospace; }
+.mp2-virus-complete > div { position: relative; width: min(720px, 100%); padding: clamp(32px, 7vw, 68px); border: 1px solid #39ff88; border-right-width: 12px; background: repeating-linear-gradient(90deg, rgba(57,255,136,.035) 0 2px, transparent 2px 19px), #030d08; box-shadow: -18px 15px 0 #071a10; }
+.mp2-virus-complete > div::before { content: ""; position: absolute; top: 42%; right: -25px; left: 18%; height: 17px; background: #020806; }
+.mp2-virus-complete span { color: #39ff88; font-size: .62rem; letter-spacing: .2em; }
+.mp2-virus-complete h2 { margin: 22px 0; color: #eafff1; font-size: clamp(2.6rem, 9vw, 6rem); line-height: .85; letter-spacing: -.06em; }
+.mp2-virus-complete p { max-width: 560px; color: #6f9b7e; font-size: .68rem; letter-spacing: .08em; line-height: 1.7; }
+.mp2-virus-complete a { display: inline-block; margin-top: 14px; padding: 12px 18px; border: 1px solid #39ff88; color: #021008; background: #39ff88; font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-decoration: none; text-transform: uppercase; }
+.database-viewer.mp2-completion-collapse { animation: mp2-completion-collapse 700ms steps(5, end) forwards; }
 .resolver-hud { position: absolute; z-index: 2; top: 16px; right: 16px; left: 16px; display: flex; justify-content: space-between; gap: 16px; pointer-events: none; }
 .resolver-hud div { min-width: 150px; padding: 9px 12px; border: 1px solid rgba(120,217,255,.4); background: rgba(4,10,20,.8); }
 .resolver-hud span { display: block; color: #7893a6; font-size: .52rem; letter-spacing: .14em; }
@@ -437,6 +470,20 @@ h1 span { color: var(--green); }
   to { opacity: 1; transform: translate(-50%,0); }
 }
 @keyframes resolver-game-exit { to { opacity: 0; filter: brightness(3); } }
+@keyframes virus-runner-launch {
+  0% { transform: translate(0); filter: none; }
+  25% { transform: translate(-12px, 4px) skewX(3deg); filter: hue-rotate(45deg) contrast(1.6); }
+  50% { transform: translate(14px, -5px) scaleX(.92); filter: brightness(2.2); }
+  75% { transform: translate(-7px, 2px) scaleY(.45); opacity: .8; }
+  100% { transform: scale(1.8, .02); opacity: 0; filter: brightness(5); }
+}
+@keyframes mp2-completion-collapse {
+  0% { transform: translate(0); filter: none; }
+  22% { transform: translate(-9px, 3px); filter: hue-rotate(70deg) contrast(1.7); }
+  46% { transform: translate(12px, -4px) scaleX(.94); filter: brightness(2); }
+  72% { transform: scaleY(.35); opacity: .85; }
+  100% { transform: scale(1.8, .01); opacity: 0; filter: brightness(5); }
+}
 @keyframes update-ready-flash { to { box-shadow: 0 0 20px rgba(126,242,154,.55); filter: brightness(1.4); } }
 @keyframes update-panel-blur { to { opacity: 0; transform: scale(1.04); filter: blur(18px) brightness(2); } }
 @keyframes part-one-reveal { from { opacity: 0; transform: scale(.94); filter: blur(12px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }

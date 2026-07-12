@@ -94,7 +94,9 @@ function applyCurrentStage(map) {
   document.body.classList.toggle("stage-two-active", isStageTwo);
 
   try {
-    isMetapuzzleActive = localStorage.getItem("hackulean_metapuzzle_1_active") === "1";
+    isMetapuzzleActive =
+      localStorage.getItem("hackulean_metapuzzle_1_active") === "1"
+      || localStorage.getItem("hackulean_metapuzzle_2_active") === "1";
   } catch (_error) {
     // Fall back to the resolved stage when storage is unavailable.
   }
