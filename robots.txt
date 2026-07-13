@@ -1,0 +1,6 @@
+# robots.txt
+
+User-agent: *
+Disallow:
+
+Sitemap: https://puzzles.sarulean.com/sitemap.xml
