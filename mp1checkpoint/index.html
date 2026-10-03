@@ -10,6 +10,16 @@
   <body>
     <div class="grid" aria-hidden="true"></div>
     <main class="checkpoint" aria-labelledby="checkpoint-title">
+      <section id="conflict-view" hidden aria-labelledby="conflict-title" role="alert">
+        <div class="warning-icon" aria-hidden="true">!</div>
+        <p class="eyebrow">SYSTEM CHECKPOINT // ACCESS DENIED</p>
+        <h1 id="conflict-title">Session Conflict</h1>
+        <div class="warning-copy">
+          <p><strong>Metapuzzle 2 is currently active.</strong></p>
+          <p>Complete Metapuzzle 2 before opening the Metapuzzle 1 checkpoint.</p>
+        </div>
+        <div class="actions"><a class="button button-secondary" href="/">Return to Puzzle Root</a></div>
+      </section>
       <section id="warning-view">
         <div class="warning-icon" aria-hidden="true">!</div>
         <p class="eyebrow">SYSTEM CHECKPOINT // IRREVERSIBLE SESSION</p>

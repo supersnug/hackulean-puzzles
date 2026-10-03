@@ -16,6 +16,22 @@ const finalTime = document.getElementById("final-time");
 
 let elapsedTimer = 0;
 
+function blockConflictingSession() {
+  let otherActive = false;
+  try {
+    otherActive = localStorage.getItem("hackulean_metapuzzle_2_active") === "1";
+  } catch (_error) {}
+  if (!otherActive) return false;
+
+  window.clearInterval(elapsedTimer);
+  warningView.classList.add("hidden");
+  activeView.classList.add("hidden");
+  completedView.classList.add("hidden");
+  document.getElementById("conflict-view").hidden = false;
+  document.querySelector("main").setAttribute("aria-labelledby", "conflict-title");
+  return true;
+}
+
 function prerequisitesAreComplete() {
   try {
     const completionMap = JSON.parse(localStorage.getItem(COMPLETION_STORE_KEY) || "{}");
@@ -26,6 +42,7 @@ function prerequisitesAreComplete() {
 }
 
 function startMetapuzzle() {
+  if (blockConflictingSession()) return;
   if (!prerequisitesAreComplete()) {
     checkpointNote.textContent = "Access denied: complete puzzles 01–03 before starting Metapuzzle 1.";
     return;
@@ -81,6 +98,7 @@ function showActiveSession(startTime) {
 }
 
 function completeMetapuzzle() {
+  if (blockConflictingSession()) return;
   const elapsed = startTime ? Date.now() - startTime : 0;
   let completionMap = {};
   try { completionMap = JSON.parse(localStorage.getItem(COMPLETION_STORE_KEY) || "{}"); } catch (_error) {}
@@ -95,11 +113,12 @@ function completeMetapuzzle() {
   finalTime.dateTime = `PT${Math.floor(elapsed / 1000)}S`;
 }
 
-const startTime = getStartTime();
+const sessionBlocked = blockConflictingSession();
+const startTime = sessionBlocked ? 0 : getStartTime();
 
-if (startTime) {
+if (!sessionBlocked && startTime) {
   showActiveSession(startTime);
-} else if (!prerequisitesAreComplete()) {
+} else if (!sessionBlocked && !prerequisitesAreComplete()) {
   startButton.disabled = true;
   startButton.textContent = "Puzzles 01–03 Required";
   prerequisiteStatus.classList.add("is-locked");
@@ -111,3 +130,5 @@ startButton.addEventListener("click", startMetapuzzle);
 finishMp1Button.addEventListener("click", completeMetapuzzle);
 
 window.addEventListener("pagehide", () => window.clearInterval(elapsedTimer));
+window.addEventListener("pageshow", blockConflictingSession);
+window.addEventListener("storage", blockConflictingSession);

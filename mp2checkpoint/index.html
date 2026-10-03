@@ -17,6 +17,15 @@
       <div class="puzzle-screen screen-terminal"><code>dbviewer-index --verify<br />sessionctl --elevate<br />ACCESS GRANTED</code></div>
     </div>
 
+    <section id="conflict-view" class="checkpoint" hidden aria-labelledby="conflict-title" role="alert">
+      <div class="checkpoint-logo" aria-hidden="true"><span>MP</span><strong>2</strong></div>
+      <p class="eyebrow">SYSTEM CHECKPOINT // ACCESS DENIED</p>
+      <h1 id="conflict-title">Session Conflict</h1>
+      <p class="subtitle">Metapuzzle 1 is currently active. Complete Metapuzzle 1 before opening the Metapuzzle 2 checkpoint.</p>
+      <p class="status is-locked"><span aria-hidden="true"></span> CHECKPOINT UNAVAILABLE</p>
+      <div class="actions"><a class="button button-secondary" href="/">BACK TO PUZZLE ROOT</a></div>
+    </section>
+
     <main id="checkpoint" class="checkpoint" aria-labelledby="checkpoint-title">
       <div class="checkpoint-logo" aria-hidden="true"><span>MP</span><strong>2</strong></div>
       <p class="eyebrow">SYSTEM CHECKPOINT // STAGE 2</p>

@@ -11,6 +11,21 @@ const launchSequence = document.getElementById("launch-sequence");
 const completedView = document.getElementById("completed-view");
 const finalTime = document.getElementById("final-time");
 
+function blockConflictingSession() {
+  let otherActive = false;
+  try {
+    otherActive = localStorage.getItem("hackulean_metapuzzle_1_active") === "1";
+  } catch (_error) {}
+  if (!otherActive) return false;
+
+  document.body.classList.remove("is-launching", "portal-opening");
+  launchSequence.setAttribute("aria-hidden", "true");
+  checkpoint.hidden = true;
+  completedView.hidden = true;
+  document.getElementById("conflict-view").hidden = false;
+  return true;
+}
+
 function prerequisitesAreComplete() {
   try {
     const completionMap = JSON.parse(localStorage.getItem(COMPLETION_STORE_KEY) || "{}");
@@ -39,6 +54,7 @@ function formatElapsed(milliseconds) {
 }
 
 function completeMetapuzzle() {
+  if (blockConflictingSession()) return;
   let elapsed = 0;
   let completionMap = {};
   try {
@@ -55,6 +71,7 @@ function completeMetapuzzle() {
 }
 
 function beginMetapuzzle() {
+  if (blockConflictingSession()) return;
   if (!prerequisitesAreComplete()) {
     checkpointNote.textContent = "Access denied: complete Puzzles 05–07 before starting Metapuzzle 2.";
     return;
@@ -65,8 +82,11 @@ function beginMetapuzzle() {
   checkpoint.setAttribute("aria-hidden", "true");
   launchSequence.setAttribute("aria-hidden", "false");
 
-  window.setTimeout(() => document.body.classList.add("portal-opening"), 5100);
   window.setTimeout(() => {
+    if (!blockConflictingSession()) document.body.classList.add("portal-opening");
+  }, 5100);
+  window.setTimeout(() => {
+    if (blockConflictingSession()) return;
     try {
       localStorage.setItem(MP2_ACTIVE_KEY, "1");
       if (!localStorage.getItem(MP2_STARTED_AT_KEY)) {
@@ -79,21 +99,24 @@ function beginMetapuzzle() {
   }, 7200);
 }
 
-if (completionIsReady()) {
+const sessionBlocked = blockConflictingSession();
+
+if (!sessionBlocked && completionIsReady()) {
   checkpoint.querySelector(".eyebrow").textContent = "METAPUZZLE SESSION // READY";
   checkpoint.querySelector("h1").textContent = "Final Signal Recovered";
   checkpoint.querySelector(".subtitle").textContent = "All crossover routes have converged. Complete the metapuzzle to finalize the session.";
   startButton.textContent = "COMPLETE METAPUZZLE 2";
-} else if (!prerequisitesAreComplete()) {
+} else if (!sessionBlocked && !prerequisitesAreComplete()) {
   startButton.disabled = true;
   startButton.textContent = "PUZZLES 05–07 REQUIRED";
   prerequisiteStatus.classList.add("is-locked");
   prerequisiteStatus.lastChild.textContent = " Puzzles 05–07 incomplete";
-} else if (mp2IsActive()) {
+} else if (!sessionBlocked && mp2IsActive()) {
   startButton.textContent = "RESUME METAPUZZLE 2";
 }
 
 startButton.addEventListener("click", () => {
+  if (blockConflictingSession()) return;
   if (completionIsReady()) {
     completeMetapuzzle();
     return;
@@ -104,3 +127,6 @@ startButton.addEventListener("click", () => {
   }
   beginMetapuzzle();
 });
+
+window.addEventListener("pageshow", blockConflictingSession);
+window.addEventListener("storage", blockConflictingSession);
