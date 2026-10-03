@@ -115,7 +115,7 @@
     errorLog.textContent = "Error log: p8fVkkm8";
     document.querySelector(".hk-recovery").appendChild(errorLog);
     const fastbootScreen = document.querySelector(".hk-recovery");
-    const unlockSequence = 'UnlockOptionsIa,"(@90kapJk';
+    const unlockSequence = 'EnableOptionsIa,"(@90kapJk';
     const fastbootLabels = ["START", "RESTART BOOTLOADER", "RECOVERY MODE", "POWER OFF"];
     let labels = fastbootLabels;
     let inAndroidRecovery = false;
