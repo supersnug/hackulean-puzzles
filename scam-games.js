@@ -395,7 +395,7 @@
     let value = 0;
     let nextDeal = 0;
     const genuine = [1, 5, 10, 20, 20];
-    const fakes = ["$0", "-$10", "$999"];
+    const fakes = ["$0", "-$10", "$999", "$500"];
     const reveal = () => {
       const fake = deal++ % 3 === 2;
       value = fake ? 0 : genuine[Math.floor(Math.random() * genuine.length)];
