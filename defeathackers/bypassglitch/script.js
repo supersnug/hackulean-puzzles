@@ -11,8 +11,9 @@ try {
 
 if (!routeAvailable) {
   document.title = "404 Not Found";
-  document.body.className = "fake-404";
-  document.body.innerHTML = "<main><h1>404 Not Found</h1><p>The requested URL was not found on this server.</p></main>";
+  document.body.className = "not-found";
+  document.querySelector('meta[name="theme-color"]').content = "#07121f";
+  document.body.innerHTML = '<main id="message" class="message" aria-live="polite"><p class="code">404</p><h1>Not Found</h1><p>The requested URL was not found on this server.</p></main>';
 } else {
   document.body.classList.add("is-bypassing");
   window.setTimeout(() => {

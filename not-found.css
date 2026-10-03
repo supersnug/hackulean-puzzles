@@ -1,0 +1,17 @@
+body.not-found, body.not-found * { box-sizing: border-box; }
+body.not-found {
+  color-scheme: dark;
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #d8dce5;
+  background: #0d1016;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: auto;
+}
+body.not-found .message { width: min(620px, 100%); }
+body.not-found .code { margin: 0; color: #8f96a3; font-size: 5rem; font-weight: 700; }
+body.not-found h1 { margin: 0 0 14px; font-size: 2rem; }
+body.not-found .message > p:last-child { color: #9aa1ad; }

@@ -9,9 +9,5 @@ body { min-height: 100vh; margin: 0; display: grid; place-items: center; overflo
 .glitch-track { height: 8px; margin: 28px 0; overflow: hidden; background: #101a22; }
 .glitch-track i { display: block; width: 0; height: 100%; background: #7ef29a; box-shadow: 0 0 18px #7ef29a; animation: bypass-progress 3.1s steps(17,end) forwards; }
 #bypass-screen code { color: #8eb7c8; }
-.fake-404 { color: #111; background: #fff; font-family: Arial, sans-serif; }
-.fake-404 main { width: min(620px, 100%); }
-.fake-404 h1 { margin: 0 0 14px; font-size: 2rem; }
-.fake-404 p { color: #555; }
 @keyframes bypass-progress { to { width: 100%; } }
 @keyframes bypass-panel { 50% { transform: translate(2px,-1px); filter: brightness(1.2); } }
