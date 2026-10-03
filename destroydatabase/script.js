@@ -727,6 +727,12 @@ async function runBootSequence() {
   for (let percent = 2; percent <= 100; percent++) {
     await sleep(BOOT_PROGRESS_MS);
     bootStatus.textContent = `${BOOT_PREFIX}${percent}%`;
+    if (percent === 37 && window.HackuleanKnowledge.isCorrupted()) {
+      bootStatus.textContent = "PAYLOAD INITIALIZATION FAILED // CORRUPTED";
+      starterPanel.classList.remove("is-hidden");
+      window.HackuleanKnowledge.showFailure(starterPanel, "Payload checksum mismatch at 37%.");
+      return;
+    }
   }
 
   bootStatus.classList.add("is-done", "is-flicker-out");
@@ -1241,7 +1247,9 @@ currentBypassCode = readBypassCode();
 const sessionState = readSessionState();
 const gameStage = readGameStage();
 
-if (gameStage === GAME_STAGE_RECOVERY) {
+if (window.HackuleanKnowledge.isCorrupted()) {
+  runBootSequence();
+} else if (gameStage === GAME_STAGE_RECOVERY) {
   writeSessionState(SESSION_STATE_LOGGED_IN);
   bootStatus?.classList.add("is-hidden");
   starterPanel?.classList.add("is-hidden");

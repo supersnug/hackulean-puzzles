@@ -1,3 +1,4 @@
+if (!window.HackuleanKnowledge.blockMetapuzzle()) {
 const COMPLETION_STORE_KEY = "hackulean_puzzle_completion_map";
 const MP2_ACTIVE_KEY = "hackulean_metapuzzle_2_active";
 const MP2_STARTED_AT_KEY = "hackulean_metapuzzle_2_started_at";
@@ -130,3 +131,4 @@ startButton.addEventListener("click", () => {
 
 window.addEventListener("pageshow", blockConflictingSession);
 window.addEventListener("storage", blockConflictingSession);
+}

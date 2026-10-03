@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#030b13" />
+    <title>Knowledge Test - HacKulean Puzzles</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../corruption-ui.css?v=spider-finale-1" />
+    <link rel="stylesheet" href="../spider-finale.css?v=3" />
+    <script src="../knowledge-state.js?v=spider-finale-1"></script>
+    <script src="../spider-finale.js?v=3"></script>
+  </head>
+  <body>
+    <a id="back-link" class="back-link" href="../">← BACK TO PUZZLE ROOT</a>
+    <main id="quiz" class="shell" hidden>
+      <header class="masthead">
+        <p class="eyebrow">HACKULEAN // STAGE 3 // NODE 09</p>
+        <h1>Knowledge Test<span class="cursor">_</span></h1>
+        <p class="deck">Your missions. Your memory. One correct signal.</p>
+      </header>
+      <div class="telemetry">
+        <div class="stat"><span id="score-panel">VERIFIED <b id="score">0</b></span></div>
+        <div class="stat"><span id="category-panel">ARCHIVE <b id="category">STAGE 1</b></span></div>
+        <div class="stat"><span id="number-panel">QUESTION <b id="number">01 / 07</b></span></div>
+      </div>
+      <section class="question-panel" aria-labelledby="question">
+        <div class="question-top"><span class="eyebrow">SELECT THE CORRECT SIGNAL</span><span id="clock" class="clock">20s</span></div>
+        <h2 id="question"></h2>
+        <div id="question-progress" class="track" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="20"><span id="question-fill"></span></div>
+      </section>
+      <div id="answers" class="answers" aria-label="Answers"></div>
+      <p id="feedback" class="feedback" role="status"></p>
+      <footer>HAC-K / KNOWLEDGE VERIFICATION PROTOCOL <span>● LIVE</span></footer>
+    </main>
+
+    <main id="challenge" class="shell challenge" hidden>
+      <p class="eyebrow">NETWORK OVERRIDE // UNAUTHORIZED PROCESS</p>
+      <h1>Contain the breach.</h1>
+      <p class="deck">Acknowledge every system error before the network is lost.</p>
+      <div class="hack-heading"><span>HACK PROGRESS</span><strong id="hack-percent">0%</strong></div>
+      <div id="hack-progress" class="track hack-track" role="progressbar" aria-label="Hack progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hack-fill"></span></div>
+      <p id="challenge-status" role="status"></p>
+      <button id="stop-virus" class="action stop-virus" type="button" hidden>STOP VIRUS</button>
+    </main>
+
+    <main id="locked" class="shell" hidden><p class="eyebrow">CHECKPOINT // ACCESS DENIED</p><h1>Metapuzzle 2 required.</h1><p>Complete Metapuzzle 2 to open the Knowledge Test.</p></main>
+    <script src="../corruption-ui.js?v=overrun-copy-2"></script>
+    <script src="altered-quiz.js?v=1"></script>
+    <script src="spider-boss.js?v=1"></script>
+    <script src="script.js?v=spider-finale-1"></script>
+  </body>
+</html>

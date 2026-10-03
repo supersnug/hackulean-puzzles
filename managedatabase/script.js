@@ -1,4 +1,5 @@
 (() => {
+  if (window.HackuleanKnowledge.isCorrupted()) return;
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 

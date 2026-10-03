@@ -1,3 +1,4 @@
+if (!window.HackuleanKnowledge.blockMetapuzzle()) {
 const COMPLETION_STORE_KEY = "hackulean_puzzle_completion_map";
 const RESET_PUZZLE_03_SIGNAL = "mp1_reset_puzzle_03";
 const COMPLETE_PUZZLE_03_SIGNAL = "mp1_complete_puzzle_03";
@@ -53,4 +54,5 @@ if (params.get("signal") === RESET_PUZZLE_03_SIGNAL) {
   window.location.replace("/");
 } else {
   window.location.replace("/");
+}
 }

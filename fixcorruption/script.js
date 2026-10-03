@@ -1,4 +1,5 @@
 (() => {
+  if (window.HackuleanKnowledge.isCorrupted()) return;
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const flashes = document.createElement("div");

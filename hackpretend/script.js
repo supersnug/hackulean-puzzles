@@ -1,4 +1,4 @@
-if (localStorage.getItem("hackulean_server_unavailable") === "1") {
+if (!window.HackuleanKnowledge.isCorrupted() && localStorage.getItem("hackulean_server_unavailable") === "1") {
   window.location.replace("/hackpretend/error");
 }
 
@@ -199,6 +199,12 @@ async function runAutoLoginIntro() {
 
   const baseMessage = "Password brute-forced successfully. Hacking into system in ";
   result.className = "result ok";
+  if (window.HackuleanKnowledge.isCorrupted()) {
+    await typePanelMessage(result, "Brute-forcing password... verifying authentication sectors...", 25);
+    await wait(700);
+    window.HackuleanKnowledge.showFailure(mainPanel, "Brute-force authentication failed.");
+    return;
+  }
   await typePanelMessage(result, `${baseMessage}3...`, 34);
 
   for (let count = 2; count >= 0; count--) {
@@ -468,9 +474,17 @@ form.addEventListener("submit", (event) => {
 });
 
 syncPrivilegeToggle();
-const isLockedOut = applyPersistentLogoutState();
+const isLockedOut = !window.HackuleanKnowledge.isCorrupted() && applyPersistentLogoutState();
 
-if (!isLockedOut && localStorage.getItem(LOGGED_IN_KEY) === "1") {
+if (window.HackuleanKnowledge.isCorrupted()) {
+  form.classList.add("hidden");
+  clue.classList.add("hidden");
+  loginPrompt.classList.add("hidden");
+  passwordHint.classList.add("hidden");
+  adminPanel.classList.add("hidden");
+  systemLog.classList.add("hidden");
+  runAutoLoginIntro();
+} else if (!isLockedOut && localStorage.getItem(LOGGED_IN_KEY) === "1") {
   enterHomepageState();
 } else if (!isLockedOut) {
   runAutoLoginIntro();

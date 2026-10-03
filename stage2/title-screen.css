@@ -157,3 +157,6 @@ body.stage-two-title-pending > :not(script) { visibility: hidden; }
   .stage-two-title-screen.is-launching,
   .stage-two-title-screen.is-launching .stage-two-title-logo { animation-duration: .01ms; animation-iteration-count: 1; }
 }
+.stage-two-title-screen.is-corrupted { --launch-accent: #ff6675; background: radial-gradient(circle at 50% 42%, #ff66751c, transparent 40%), #030b13; }
+.stage-two-title-screen.is-corrupted h1 { color: #ff6675; }
+.stage-two-title-screen.is-corrupted .stage-two-title-launch { text-decoration: none; }

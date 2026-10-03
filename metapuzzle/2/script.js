@@ -1,3 +1,4 @@
+if (!window.HackuleanKnowledge.blockMetapuzzle()) {
 const params = new URLSearchParams(window.location.search);
 
 if (params.get("signal") === "mp2_reset_puzzle_05") {
@@ -31,4 +32,5 @@ if (params.get("signal") === "mp2_reset_puzzle_05") {
     // Continue back to the root if storage is unavailable.
   }
   window.location.replace("/");
+}
 }

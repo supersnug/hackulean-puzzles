@@ -1,3 +1,4 @@
+if (!window.HackuleanKnowledge.blockMetapuzzle()) {
 const COMPLETION_STORE_KEY = "hackulean_puzzle_completion_map";
 const METAPUZZLE_ACTIVE_KEY = "hackulean_metapuzzle_1_active";
 const METAPUZZLE_STARTED_AT_KEY = "hackulean_metapuzzle_1_started_at";
@@ -132,3 +133,4 @@ finishMp1Button.addEventListener("click", completeMetapuzzle);
 window.addEventListener("pagehide", () => window.clearInterval(elapsedTimer));
 window.addEventListener("pageshow", blockConflictingSession);
 window.addEventListener("storage", blockConflictingSession);
+}

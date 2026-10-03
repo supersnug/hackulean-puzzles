@@ -589,3 +589,17 @@ h1 {
   body.stage-three-closing .stage-three-grid,
   .stage-widget.stage-unstable { animation-duration: .01ms; animation-delay: 0s; }
 }
+:root body.network-corrupted .puzzle-card {
+  border-color: #ff6675;
+  background: rgba(48, 8, 19, .85);
+  box-shadow: 0 0 20px #ff667514;
+}
+body.network-corrupted .puzzle-card .puzzle-title,
+body.network-corrupted .puzzle-card .puzzle-state,
+body.network-corrupted .puzzle-card .icon-core { color: #ff6675; }
+body.network-corrupted .puzzle-card .icon-frame { border-color: #ff6675; }
+body.network-corrupted .puzzle-card-locked { opacity: .85; }
+body .stage-widget.stage-corrupted { border-color: #ff6675; color: #ff6675; box-shadow: 0 0 28px #ff667533; }
+body .stage-widget.stage-corrupted * { color: #ff6675; }
+body .stage-widget.stage-corrupted .stage-widget-icon,
+body .stage-widget.stage-corrupted .stage-widget-status { color: #ff6675; border-color: #ff6675; background: #ff667514; box-shadow: 0 0 16px #ff667533; }

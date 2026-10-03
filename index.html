@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HacKulean Puzzles</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="corruption-ui.css?v=spider-hunt-1" />
+    <link rel="stylesheet" href="scam-games.css?v=scam-games-1" />
   </head>
   <body>
     <div id="ambient-stage-grid" class="ambient-stage-grid" aria-hidden="true"></div>
@@ -49,8 +51,8 @@
           network stabilizes.
         </p>
         <div class="status-row">
-          <span class="status-pill">03 ONLINE</span>
-          <span class="status-pill status-pill-muted">07 LOCKED</span>
+          <span id="online-count" class="status-pill">— ONLINE</span>
+          <span id="locked-count" class="status-pill status-pill-muted">— LOCKED</span>
         </div>
       </header>
 
@@ -196,11 +198,11 @@
           <span class="puzzle-state">COMPLETE 05-07</span>
         </a>
 
-        <div
+        <a href="knowledgetest/" tabindex="-1"
           class="puzzle-card puzzle-card-locked"
           data-puzzle-id="09-knowledge-test"
           data-requires="08-metapuzzle-2"
-          data-coming-soon="true"
+          data-unlocked-description="Test your knowledge of the network. How much do you remember?"
           data-locked-description="Complete Metapuzzle 2 to unlock Puzzle 09."
           aria-disabled="true"
         >
@@ -212,7 +214,7 @@
             <span class="puzzle-description">Complete Metapuzzle 2 to unlock Puzzle 09.</span>
           </span>
           <span class="puzzle-state">COMPLETE 08</span>
-        </div>
+        </a>
 
         <div
           class="puzzle-card puzzle-card-locked"
@@ -234,6 +236,12 @@
       </section>
     </main>
 
-    <script src="script.js"></script>
+    <link rel="stylesheet" href="spider-finale.css?v=3" />
+    <script src="knowledge-state.js?v=spider-finale-1"></script>
+    <script src="spider-finale.js?v=3"></script>
+    <script src="scam-games.js?v=scam-games-1"></script>
+    <script src="spider-hunt.js?v=spider-finale-1"></script>
+    <script src="corruption-ui.js?v=spider-hunt-1"></script>
+    <script src="script.js?v=spider-finale-1"></script>
   </body>
 </html>

@@ -1473,9 +1473,10 @@ async function runRemountSequence() {
 
 remountButton.addEventListener("click", runRemountSequence);
 
-const cleanDatabaseSaved = cleanDatabaseIsSaved();
-const recoveryModeSaved = recoveryModeIsSaved();
-const mp1AwSnapPending = awSnapIsPending();
+const networkCorrupted = window.HackuleanKnowledge.isCorrupted();
+const cleanDatabaseSaved = !networkCorrupted && cleanDatabaseIsSaved();
+const recoveryModeSaved = !networkCorrupted && recoveryModeIsSaved();
+const mp1AwSnapPending = !networkCorrupted && awSnapIsPending();
 
 if (mp1AwSnapPending) {
   showMp1PasswordPrompt();
@@ -1490,6 +1491,13 @@ const loadingTimer = cleanDatabaseSaved || recoveryModeSaved || mp1AwSnapPending
   : window.setInterval(() => {
     loadingValue = Math.min(STUCK_PROGRESS, loadingValue + 0.7 + Math.random() * 1.8);
     renderLoadingProgress(loadingValue);
+
+    if (networkCorrupted && loadingValue >= 36) {
+      window.clearInterval(loadingTimer);
+      window.clearInterval(walkTimer);
+      window.HackuleanKnowledge.showFailure(document.getElementById("loading-panel"), "File loader encountered corrupted sectors.");
+      return;
+    }
 
     if (loadingValue >= STUCK_PROGRESS) {
       window.clearInterval(loadingTimer);

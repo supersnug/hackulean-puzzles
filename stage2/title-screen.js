@@ -33,6 +33,27 @@
     blockerKey: stageTwoTitleBlockerKey || null,
   });
 
+  if (window.HackuleanKnowledge.isCorrupted()) {
+    const screen = document.createElement("section");
+    screen.className = "stage-two-title-screen is-corrupted";
+    screen.setAttribute("role", "alert");
+    screen.innerHTML = `
+      <div class="stage-two-title-content">
+        <div class="stage-two-title-logo" aria-hidden="true"><span>!</span></div>
+        <p class="stage-two-title-eyebrow">HACKULEAN // NODE ${stageTwoNumber} // OFFLINE</p>
+        <h1>System Error</h1>
+        <p class="stage-two-title-status">${stageTwoTitle}: NETWORK CORRUPTION DETECTED</p>
+        <a class="stage-two-title-launch" href="${window.HackuleanKnowledge.url()}">BACK TO PUZZLE ROOT</a>
+      </div>`;
+    Array.from(document.body.children).forEach((child) => {
+      if (child.tagName !== "SCRIPT") child.inert = true;
+    });
+    document.body.prepend(screen);
+    document.body.classList.remove("stage-two-title-pending");
+    document.body.classList.add("stage-two-title-open");
+    return;
+  }
+
   try {
     if (localStorage.getItem("hackulean_metapuzzle_2_active") === "1") {
       document.body.classList.remove("stage-two-title-pending", "stage-two-title-open");

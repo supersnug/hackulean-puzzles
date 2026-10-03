@@ -83,6 +83,13 @@ function applyPrerequisiteLocks(map) {
   });
 }
 
+function applyPuzzleCounts() {
+  const cards = Array.from(document.querySelectorAll(".puzzle-card[data-puzzle-id]"));
+  const online = cards.filter((card) => card.matches("a") && !card.classList.contains("puzzle-card-locked")).length;
+  document.getElementById("online-count").textContent = `${String(online).padStart(2, "0")} ONLINE`;
+  document.getElementById("locked-count").textContent = `${String(cards.length - online).padStart(2, "0")} LOCKED`;
+}
+
 function applyCurrentStage(map) {
   const widget = document.querySelector(".stage-widget");
   const icon = document.getElementById("stage-widget-icon");
@@ -94,6 +101,22 @@ function applyCurrentStage(map) {
 
   document.body.classList.toggle("stage-two-active", isStageTwo);
   document.body.classList.toggle("stage-three-active", isStageThree);
+
+  if (window.HackuleanKnowledge.isCorrupted()) {
+    document.body.classList.add("network-corrupted");
+    widget.classList.add("stage-unstable", "stage-corrupted");
+    status.textContent = "NETWORK CORRUPTED";
+    const symbols = ["$", "&", "(", "!", "?", "%", "#", "@", "}", "*"];
+    const corruptStage = () => {
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      icon.textContent = symbol;
+      stage.textContent = `STAGE ${symbol}`;
+    };
+    corruptStage();
+    const timer = window.setInterval(corruptStage, 100);
+    window.addEventListener("pagehide", () => window.clearInterval(timer), { once: true });
+    return;
+  }
 
   try {
     isMetapuzzleActive =
@@ -125,6 +148,12 @@ function applyCurrentStage(map) {
 }
 
 function preventLockedNavigation(event) {
+  const metapuzzle = event.target.closest("a[data-puzzle-id='04-metapuzzle-1'], a[data-puzzle-id='08-metapuzzle-2']");
+  if (metapuzzle && window.HackuleanKnowledge.isCorrupted()) {
+    event.preventDefault();
+    showCorruptionError();
+    return;
+  }
   const lockedCard = event.target.closest("a.puzzle-card[aria-disabled='true']");
   if (lockedCard) event.preventDefault();
 }
@@ -232,15 +261,40 @@ function initializeAmbientStageGrid(isStageThree = false) {
   }, { once: true });
 }
 
-const completedPuzzleId = processCompletionSignal();
+function showCorruptionError() {
+  window.HackuleanCorruptionUI.popup({
+    title: "Metapuzzle unavailable",
+    message: "Network corruption has severed this checkpoint. Metapuzzle routing is unavailable.",
+    modal: true,
+  });
+}
+
+if (window.HackuleanKnowledge.read().phase === "recovery") {
+  window.HackuleanCorruptionUI.showRecovery();
+} else if (["stopping", "hub-collapse"].includes(window.HackuleanKnowledge.read().phase)) {
+  window.HackuleanCorruptionUI.startHubCollapse();
+} else {
+if (window.HackuleanKnowledge.read().phase === "stranded") window.HackuleanKnowledge.save("spread");
+const isOverrun = window.HackuleanKnowledge.read().phase === "overrun";
+const completedPuzzleId = isOverrun ? "" : processCompletionSignal();
 const completionMap = readCompletionMap();
 applyCompletionStatus(completionMap);
 applyPrerequisiteLocks(completionMap);
+applyPuzzleCounts();
 applyCurrentStage(completionMap);
-if (completionMap["04-metapuzzle-1"]) initializeAmbientStageGrid(Boolean(completionMap["08-metapuzzle-2"]));
+if (!isOverrun && completionMap["04-metapuzzle-1"]) initializeAmbientStageGrid(Boolean(completionMap["08-metapuzzle-2"]));
 if (completedPuzzleId === "04-metapuzzle-1") showStageTwoReveal();
 if (completedPuzzleId === "08-metapuzzle-2") showStageThreeReveal();
 document.addEventListener("click", preventLockedNavigation);
+
+if (window.HackuleanKnowledge.isCorrupted()) {
+  document.querySelectorAll(".puzzle-card .puzzle-state").forEach((label) => { label.textContent = "CORRUPTED"; });
+  if (!isOverrun && new URLSearchParams(location.search).get("signal") === "corruption-blocked") {
+    showCorruptionError();
+    window.history.replaceState({}, "", window.location.pathname);
+  }
+}
+window.addEventListener("pageshow", (event) => { if (event.persisted) location.reload(); });
 
 const puzzleCards = document.querySelectorAll(".puzzle-card");
 
@@ -249,3 +303,8 @@ puzzleCards.forEach((card, index) => {
     card.classList.add("revealed");
   }, 70 * index);
 });
+
+if (window.HackuleanSpiderFinale.read().stage === "victory") window.HackuleanSpiderFinale.restoreHub();
+else if (isOverrun) window.HackuleanCorruptionUI.showOverrunHub();
+
+}

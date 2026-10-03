@@ -3,6 +3,7 @@ const MP1_ACTIVE_KEY = "hackulean_metapuzzle_1_active";
 const MP1_READY_KEY = "hackulean_mp1_completion_ready";
 
 window.HACKULEAN_MP1_P02_VARIANT =
+  !window.HackuleanKnowledge.isCorrupted() &&
   localStorage.getItem(MP1_ACTIVE_KEY) === "1" &&
   localStorage.getItem(MP1_P02_KEY) === "1";
 
