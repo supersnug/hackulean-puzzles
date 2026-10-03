@@ -27,6 +27,21 @@
     let interfered = false;
     let selectedTypos = new Set();
     const controls = new AbortController();
+    let miniFrame = 0;
+    let minis = [];
+    const pointer = { x: 0, y: 0, inside: false };
+    const trackPointer = event => {
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.inside = true;
+    };
+    const on = (target, event, handler) => target.addEventListener(event, handler, { signal: controls.signal });
+    on(document, "pointermove", trackPointer);
+    on(document, "pointerdown", trackPointer);
+    on(document.documentElement, "pointerleave", () => { pointer.inside = false; });
+    on(window, "blur", () => { pointer.inside = false; });
+    on(document, "pointercancel", () => { pointer.inside = false; });
+    on(document, "pointerup", event => { if (event.pointerType !== "mouse") pointer.inside = false; });
     const intruder = document.createElement("div");
     intruder.className = "sf-quiz-spider";
     intruder.innerHTML = story.spiderMarkup;
@@ -42,8 +57,73 @@
       }
       return items;
     };
+    function clearMinis() {
+      cancelAnimationFrame(miniFrame);
+      minis.forEach(spider => spider.element.remove());
+      minis = [];
+    }
+    function shuffleAnswers() {
+      const buttons = [...get("answers").children];
+      const previous = new Map(buttons.map(button => [button, button.getBoundingClientRect()]));
+      const rearranged = shuffle([...buttons]);
+      if (rearranged.every((button, index) => button === buttons[index])) rearranged.push(rearranged.shift());
+      get("answers").replaceChildren(...rearranged);
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      rearranged.forEach(button => {
+        const before = previous.get(button);
+        const after = button.getBoundingClientRect();
+        button.animate([
+          { transform: `translate(${before.left - after.left}px, ${before.top - after.top}px)` },
+          { transform: "translate(0, 0)" },
+        ], { duration: 380, easing: "ease-in-out" });
+      });
+    }
+    function spawnMinis() {
+      clearMinis();
+      const starts = [[.94, .18], [.94, .5], [.06, .25]];
+      minis = starts.map(([x, y], index) => {
+        const element = document.createElement("div");
+        element.className = "sf-mini-spider";
+        element.setAttribute("aria-hidden", "true");
+        element.innerHTML = story.spiderMarkup;
+        document.body.append(element);
+        return { element, x: x * innerWidth, y: y * innerHeight, speed: 95 + index * 14 };
+      });
+      const position = spider => {
+        spider.x = Math.max(14, Math.min(innerWidth - 14, spider.x));
+        spider.y = Math.max(14, Math.min(innerHeight - 14, spider.y));
+        spider.element.style.transform = `translate3d(${spider.x - 14}px, ${spider.y - 14}px, 0)`;
+      };
+      minis.forEach(position);
+      let last = performance.now();
+      const graceUntil = last + 600;
+      function chase(now) {
+        const dt = Math.max(0, Math.min(.05, (now - last) / 1000));
+        last = now;
+        if (pointer.inside && !document.hidden && document.hasFocus()) {
+          for (const spider of minis) {
+            const dx = pointer.x - spider.x;
+            const dy = pointer.y - spider.y;
+            const distance = Math.hypot(dx, dy);
+            const step = Math.min(distance, spider.speed * dt);
+            if (distance > 0) {
+              spider.x += dx / distance * step;
+              spider.y += dy / distance * step;
+            }
+            position(spider);
+            if (now >= graceUntil && Math.hypot(pointer.x - spider.x, pointer.y - spider.y) <= 13) {
+              render("A mini-spider caught your cursor. Retrying this question.");
+              return;
+            }
+          }
+        }
+        miniFrame = requestAnimationFrame(chase);
+      }
+      miniFrame = requestAnimationFrame(chase);
+    }
     function dispose() {
       clearInterval(timer);
+      clearMinis();
       controls.abort();
       intruder.remove();
     }
@@ -72,6 +152,7 @@
     }
     function render(message = "") {
       clearInterval(timer);
+      clearMinis();
       if (current === null) current = order.shift();
       const question = questions[current];
       selectedTypos = new Set();
@@ -114,15 +195,12 @@
           intruder.classList.remove("sf-jump");
           void intruder.offsetWidth;
           intruder.classList.add("sf-jump");
-          if (Math.random() < .5 && order.length > 1) {
-            // Shuffle only unanswered real questions, preserving fake-question interruptions.
-            const real = shuffle(order.filter(id => id < 7));
-            let index = 0;
-            order.forEach((id, slot) => { if (id < 7) order[slot] = real[index++]; });
-            get("feedback").textContent = "The spider rearranged the remaining archive.";
+          if (Math.random() < .5) {
+            shuffleAnswers();
+            get("feedback").textContent = "The spider shuffled your answers.";
           } else {
-            ["The spider knows", "[SIGNAL MISSING]", "Ask the void"].forEach(text => answerButton(text, false));
-            get("feedback").textContent = "The spider injected more answers.";
+            spawnMinis();
+            get("feedback").textContent = "Mini-spiders incoming! Answer before they catch your cursor.";
           }
         }
       }, 50);

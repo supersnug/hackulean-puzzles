@@ -341,7 +341,7 @@
     const remaining = () => targets.filter((element) => element.isConnected);
     const entries = () => [
       ...menuOptions.filter((element) => element.isConnected).map((element) => ({ element, deletable: false })),
-      ...(remaining().length ? remaining() : logo.isConnected ? [logo] : []).map((element) => ({ element, deletable: true })),
+      ...remaining().map((element) => ({ element, deletable: true })),
     ];
     const glitchNames = () => {
       const symbols = "#$%&!?@/\\[]{}";
@@ -360,9 +360,10 @@
     };
     const select = (index) => {
       const choices = entries();
-      if (!choices.length) return;
       document.querySelectorAll(".hk-delete-selected").forEach((element) => element.classList.remove("hk-delete-selected"));
       menuOptions.forEach((element) => element.setAttribute("aria-selected", "false"));
+      cursor.hidden = choices.length === 0;
+      if (!choices.length) { current = null; return; }
       current = choices[Math.max(0, Math.min(choices.length - 1, index))];
       current.element.classList.add("hk-delete-selected");
       current.element.scrollIntoView({ block: "nearest" });

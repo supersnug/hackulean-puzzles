@@ -29,6 +29,8 @@ body.network-corrupted .puzzle-card.sf-restored * { color: #baf5e6 !important; }
 .sf-typo { display: inline; font: inherit; color: inherit; border: 0; padding: 0; background: none; cursor: pointer; }
 .sf-typo-found { color: #7ef29a; text-decoration: line-through; }
 .sf-quiz-spider { position: fixed; z-index: 100; width: 90px; height: 90px; right: 4vw; top: 28vh; color: #ff6675; pointer-events: none; }
+.sf-mini-spider { position: fixed; z-index: 101; top: 0; left: 0; width: 28px; height: 28px; color: #ff6675; filter: drop-shadow(0 0 4px #ff3434); pointer-events: none; will-change: transform; }
+.sf-mini-spider svg { width: 100%; height: 100%; }
 .sf-jump { animation: sf-jump 1.8s ease-out both; }
 .sf-boss { max-width: 1000px; }
 .sf-boss-rules { color: #9fc2d4; line-height: 1.6; }
